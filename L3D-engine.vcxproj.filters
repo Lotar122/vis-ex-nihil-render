@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Classes\MaxwellsEngine\MaxwellsEngine.cpp" />
+    <ClCompile Include="Classes\Pipeline\Pipeline.cpp" />
+    <ClCompile Include="Classes\SPIRV\SPIRV.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Classes\App\App.cpp" />
+    <ClCompile Include="Classes\Engine\Engine.cpp" />
+    <ClCompile Include="Classes\Engine\Engine.Primary.cpp" />
+    <ClCompile Include="Classes\Engine\Engine.Pipeline.cpp" />
+    <ClCompile Include="Classes\Engine\Engine.Render.cpp" />
+    <ClCompile Include="Classes\Engine\Engine.Structs.InData.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Classes\MaxwellsEngine\MaxwellsEngine.h" />
+    <ClInclude Include="Classes\Pipeline\Pipeline.h" />
+    <ClInclude Include="Classes\SPIRV\SPIRV.h" />
+    <ClInclude Include="implicit_cast.h" />
+    <ClInclude Include="TerminalColors.h" />
+    <ClInclude Include="Classes\App\App.h" />
+    <ClInclude Include="Classes\Engine\Engine.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="compile.bat" />
+  </ItemGroup>
+</Project>
