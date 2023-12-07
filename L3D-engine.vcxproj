@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -24,16 +24,17 @@
     <ClCompile Include="Classes\Engine\Engine.Primary.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Render.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Structs.InData.h" />
-    <ClCompile Include="Classes\MaxwellsEngine\MaxwellsEngine.cpp" />
     <ClCompile Include="Classes\Pipeline\Pipeline.cpp" />
+    <ClCompile Include="Classes\Scene\Scene.cpp" />
     <ClCompile Include="Classes\SPIRV\SPIRV.cpp" />
     <ClCompile Include="Classes\Engine\Engine.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\App\App.h" />
-    <ClInclude Include="Classes\MaxwellsEngine\MaxwellsEngine.h" />
+    <ClInclude Include="Classes\Engine\RenderStructs.h" />
     <ClInclude Include="Classes\Pipeline\Pipeline.h" />
+    <ClInclude Include="Classes\Scene\Scene.h" />
     <ClInclude Include="Classes\SPIRV\SPIRV.h" />
     <ClInclude Include="Classes\Engine\Engine.h" />
     <ClInclude Include="implicit_cast.h" />
@@ -41,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />
+    <None Include="LICENSE.md" />
+    <None Include="README.md" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

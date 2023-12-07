@@ -11,6 +11,8 @@ App::App(uint32_t width, uint32_t height, std::string name, Engine* _engine)
 	engine = _engine;
 	engine->setApp(this);
 	engine->Setup();
+
+	scene = new Scene();
 }
 App::~App()
 {
@@ -18,9 +20,11 @@ App::~App()
 	glfwTerminate();
 
 	delete engine;
+	delete scene;
 }
 void App::handle()
 {
 	shouldClose = glfwWindowShouldClose(window);
 	glfwPollEvents();
+	engine->Draw(scene);
 }

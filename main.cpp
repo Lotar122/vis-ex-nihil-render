@@ -101,11 +101,7 @@ public:
 	}
 };
 
-template<typename T>
-T cast_ptr(void* ptr)
-{
-	return (T)ptr;
-}
+
 
 int main()
 {
@@ -142,7 +138,7 @@ int main()
 	while (!app->shouldClose)
 	{
 		app->handle();
-		app->engine->Draw();
+		app->engine->Draw(app->scene);
 	}
 
 	//getchar();

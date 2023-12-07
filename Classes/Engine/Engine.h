@@ -12,10 +12,17 @@
 #include "SPIRV/SPIRV.h"
 
 #define USE_COLORS
-#include "TerminalColors.h";
+#include "TerminalColors.h"
 
 #include "App/App.h"
 #include "Engine.Structs.InData.h"
+
+#include "RenderStructs.h"
+
+#include "Scene/Scene.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 struct WindowData {
 	int width;
@@ -72,7 +79,7 @@ public:
 	void SetupDeafult();
 
 	//Draw
-	void Draw();
+	void Draw(Scene* scene);
 
 private:
 	//picks the right device
@@ -98,7 +105,21 @@ private:
 	//render setup related code (organize in future)
 	void RenderSetup();
 	//records draw commands
-	void recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex);
+	void recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, Scene* scene);
+	//destroy the swapchain
+	void destroySwapchain();
+	//create the flow-control
+	void createSyncObjects();
+	//create framebuffers
+	void createFrameBuffers();
+	//make frame commandbuffers
+	void createFrameCommandBuffers();
+	//make main commandbuffer
+	void createMainCommandBuffer();
+	//make commandpools
+	void createCommandPools();
+	//reacreate swapchain
+	void RecreateSwapchain();
 
 	vk::Instance instance;
 	vk::PhysicalDevice device;

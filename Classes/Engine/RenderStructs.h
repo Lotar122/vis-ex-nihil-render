@@ -3,4 +3,5 @@
 
 struct ObjectData {
 	glm::mat4 model;
+	float time;
 };

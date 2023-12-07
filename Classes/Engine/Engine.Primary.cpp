@@ -48,6 +48,7 @@ void Engine::PickDevice()
 	std::vector<vk::PhysicalDevice> availableDevices = instance.enumeratePhysicalDevices();
 	for (const vk::PhysicalDevice& devices : availableDevices)
 	{
+		std::cout << "Enum" << std::endl;
 		if (isSuitable(devices))
 		{
 			device = devices;

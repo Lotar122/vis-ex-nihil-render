@@ -23,6 +23,22 @@ Engine::~Engine()
 	logicalDevice.destroyPipelineLayout(layout);
 	logicalDevice.destroyRenderPass(renderPass);
 
+	destroySwapchain();
+
+	logicalDevice.waitIdle();
+	logicalDevice.destroy();
+	instance.destroySurfaceKHR(surface);
+	instance.destroy();
+
+	//REMEMBER
+	//undestroyed resources, unfinished setups, ETC.
+	//cause nvoglv64.dll crashes
+}
+
+void Engine::destroySwapchain()
+{
+	std::cout << std::endl << YELLOW << "[Setup]" << RESET << " Destroying the swapchain " << GREEN << "[###]" << std::endl;
+	logicalDevice.waitIdle();
 	for (const SwapChainFrame& frame : bundle.frames)
 	{
 		logicalDevice.destroySemaphore(frame.imageAvailable);
@@ -32,14 +48,32 @@ Engine::~Engine()
 		logicalDevice.destroyFramebuffer(frame.frameBuffer);
 	}
 	logicalDevice.destroySwapchainKHR(bundle.swapchain);
-	logicalDevice.waitIdle();
-	logicalDevice.destroy();
-	instance.destroySurfaceKHR(surface);
-	instance.destroy();
+}
 
-	//REMEMBER
-	//undestroyed resources, unfinished setups, ETC.
-	//cause nvoglv64.dll crashes
+void Engine::RecreateSwapchain()
+{
+	int* pWidth = new int(0);
+	int* pHeight = new int(0);
+	glfwGetFramebufferSize(app->window, pWidth, pHeight);
+	//std::cout << "Attempting to recreate: {width: " << *pWidth << ", height: " << *pHeight << "}" << std::endl;
+	app->width = *pWidth;
+	app->height = *pHeight;
+	while (app->width == 0 || app->height == 0)
+	{
+		glfwGetFramebufferSize(app->window, pWidth, pHeight);
+		app->width = *pWidth;
+		app->height = *pHeight;
+		glfwWaitEvents();
+	}
+	delete pWidth, pHeight;
+	logicalDevice.waitIdle();
+	destroySwapchain();
+	PreConfigSwapchain();
+	CreateSwapchain();
+	CreateImageViews();
+	createFrameBuffers();
+	createSyncObjects();
+	createFrameCommandBuffers();
 }
 
 void Engine::Setup()
@@ -61,7 +95,7 @@ void Engine::SetupDeafult()
 	vulkanVersion.make_version(0, 1, 0, 0);
 	instanceCreateInfo.VulkanVersion = vulkanVersion;
 	std::vector<const char*> validationLayers = {
-		//"VK_LAYER_KHRONOS_validation"
+		"VK_LAYER_KHRONOS_validation"
 	};
 	instanceCreateInfo.validationLayers = validationLayers;
 	CreateVulkanInstance(instanceCreateInfo);

@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include "Scene/Scene.h"
 
 class Engine;
 
@@ -12,6 +13,7 @@ public:
 	std::string name;
 
 	Engine* engine;
+	Scene* scene;
 
 	GLFWwindow* window;
 

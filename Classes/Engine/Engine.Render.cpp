@@ -1,17 +1,26 @@
 #include "Engine.h"
 
-void Engine::Draw()
+#include <chrono>
+
+void Engine::Draw(Scene* scene)
 {
 	logicalDevice.waitForFences(1, &bundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
-	logicalDevice.resetFences(1, &bundle.frames[frameNumber].inFlightFence);
-
-	uint32_t imageIndex{ logicalDevice.acquireNextImageKHR(bundle.swapchain, UINT64_MAX, bundle.frames[frameNumber].imageAvailable, nullptr).value };
+	uint32_t imageIndex{ 0 };
+	try {
+		vk::ResultValue acquire = logicalDevice.acquireNextImageKHR(bundle.swapchain, UINT64_MAX, bundle.frames[frameNumber].imageAvailable, nullptr);
+		imageIndex = acquire.value;
+	}
+	catch (vk::OutOfDateKHRError err) {
+		std::cout << "SwapChain recreation" << std::endl;
+		RecreateSwapchain();
+		return;
+	}
 
 	vk::CommandBuffer commandBuffer = bundle.frames[imageIndex].commandBuffer;
 
 	commandBuffer.reset();
 
-	recordDrawCommands(commandBuffer, imageIndex);
+	recordDrawCommands(commandBuffer, imageIndex, scene);
 
 	vk::SubmitInfo submitinfo = {};
 	vk::Semaphore waitSemaphores[] = { bundle.frames[frameNumber].imageAvailable };
@@ -24,6 +33,8 @@ void Engine::Draw()
 	vk::Semaphore signalSemaphores[] = { bundle.frames[frameNumber].renderFinished };
 	submitinfo.signalSemaphoreCount = 1;
 	submitinfo.pSignalSemaphores = signalSemaphores;
+
+	logicalDevice.resetFences(1, &bundle.frames[frameNumber].inFlightFence);
 	try {
 		graphicsQueue.submit(submitinfo, bundle.frames[frameNumber].inFlightFence);
 	}
@@ -39,12 +50,23 @@ void Engine::Draw()
 	presentInfo.pSwapchains = swapchains;
 	presentInfo.pImageIndices = &imageIndex;
 
-	presentQueue.presentKHR(presentInfo);
+	vk::Result presentResult;
+	try {
+		presentResult = presentQueue.presentKHR(presentInfo);
+	}
+	catch (vk::OutOfDateKHRError err) {
+		presentResult = vk::Result::eErrorOutOfDateKHR;
+	}
+	if (presentResult == vk::Result::eErrorOutOfDateKHR || presentResult == vk::Result::eSuboptimalKHR)
+	{
+		RecreateSwapchain();
+		return;
+	}
 
 	frameNumber = (frameNumber + 1) % maxFramesInFlight;
 }
 
-void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex)
+void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, Scene* scene)
 {
 	vk::CommandBufferBeginInfo beginInfo = {};
 	try {
@@ -67,7 +89,16 @@ void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t image
 
 	commandBuffer.beginRenderPass(passInfo, vk::SubpassContents::eInline);
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-	commandBuffer.draw(3, 1, 0, 0);
+	for (glm::vec3 position : scene->triangleVertices)
+	{
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
+		ObjectData data = {};
+		data.model = model;
+		srand((unsigned) std::time(NULL));
+		data.time = std::rand();
+		commandBuffer.pushConstants(layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectData), &data);
+		commandBuffer.draw(3, 1, 0, 0);
+	}
 	commandBuffer.endRenderPass();
 	try {
 		commandBuffer.end();
@@ -80,30 +111,15 @@ void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t image
 
 void Engine::RenderSetup()
 {
-	//create frame buffer
-	for (int i = 0; i < bundle.frames.size(); i++)
-	{
-		std::vector<vk::ImageView> attachments = {
-			bundle.frames[i].view
-		};
-		vk::FramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.flags = vk::FramebufferCreateFlags();
-		framebufferInfo.renderPass = renderPass;
-		framebufferInfo.attachmentCount = attachments.size();
-		framebufferInfo.width = extent.width;
-		framebufferInfo.height = extent.height;
-		framebufferInfo.pAttachments = attachments.data();
-		framebufferInfo.layers = 1;
+	createCommandPools();
+	createFrameCommandBuffers();
+	createMainCommandBuffer();
+	createFrameBuffers();
+	createSyncObjects();
+}
 
-		try {
-			bundle.frames[i].frameBuffer = logicalDevice.createFramebuffer(framebufferInfo);
-		}
-		catch (vk::SystemError) {
-			std::cerr << "Error whilst creating a framebuffer" << std::endl;
-			std::abort();
-		}
-	}
-
+void Engine::createCommandPools()
+{
 	//create a command pool
 	vk::CommandPoolCreateInfo commandPoolInfo = {};
 	commandPoolInfo.flags = vk::CommandPoolCreateFlags() | vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
@@ -116,32 +132,10 @@ void Engine::RenderSetup()
 		std::cerr << "Error whilst creating the command pool" << std::endl;
 		std::abort();
 	}
+}
 
-	//make command buffers
-	vk::CommandBufferAllocateInfo commandBufferAllocInfo = {};
-	commandBufferAllocInfo.commandPool = commandPool;
-	commandBufferAllocInfo.level = vk::CommandBufferLevel::ePrimary;
-	commandBufferAllocInfo.commandBufferCount = 1;
-
-	for (int i = 0; i < bundle.frames.size(); i++)
-	{
-		try {
-			bundle.frames[i].commandBuffer = logicalDevice.allocateCommandBuffers(commandBufferAllocInfo)[0];
-		}
-		catch (vk::SystemError err) {
-			std::cerr << "Error whilst allocating command buffers" << std::endl;
-			std::abort();
-		}
-	}
-
-	try {
-		commandBuffer = logicalDevice.allocateCommandBuffers(commandBufferAllocInfo)[0];
-	}
-	catch (vk::SystemError err) {
-		std::cerr << "Error whilst allocating the main command buffer" << std::endl;
-		std::abort();
-	}
-
+void Engine::createSyncObjects()
+{
 	//create semaphores
 	vk::SemaphoreCreateInfo semaphoreCreateInfo = {};
 	semaphoreCreateInfo.flags = vk::SemaphoreCreateFlags();
@@ -178,3 +172,68 @@ void Engine::RenderSetup()
 		}
 	}
 }
+
+void Engine::createFrameCommandBuffers()
+{
+	//make command buffers
+	vk::CommandBufferAllocateInfo commandBufferAllocInfo = {};
+	commandBufferAllocInfo.commandPool = commandPool;
+	commandBufferAllocInfo.level = vk::CommandBufferLevel::ePrimary;
+	commandBufferAllocInfo.commandBufferCount = 1;
+
+	for (int i = 0; i < bundle.frames.size(); i++)
+	{
+		try {
+			bundle.frames[i].commandBuffer = logicalDevice.allocateCommandBuffers(commandBufferAllocInfo)[0];
+		}
+		catch (vk::SystemError err) {
+			std::cerr << "Error whilst allocating command buffers" << std::endl;
+			std::abort();
+		}
+	}
+}
+
+void Engine::createMainCommandBuffer()
+{
+	//make command buffers
+	vk::CommandBufferAllocateInfo commandBufferAllocInfo = {};
+	commandBufferAllocInfo.commandPool = commandPool;
+	commandBufferAllocInfo.level = vk::CommandBufferLevel::ePrimary;
+	commandBufferAllocInfo.commandBufferCount = 1;
+
+	try {
+		commandBuffer = logicalDevice.allocateCommandBuffers(commandBufferAllocInfo)[0];
+	}
+	catch (vk::SystemError err) {
+		std::cerr << "Error whilst allocating the main command buffer" << std::endl;
+		std::abort();
+	}
+}
+
+void Engine::createFrameBuffers()
+{
+	//create frame buffer
+	for (int i = 0; i < bundle.frames.size(); i++)
+	{
+		std::vector<vk::ImageView> attachments = {
+			bundle.frames[i].view
+		};
+		vk::FramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.flags = vk::FramebufferCreateFlags();
+		framebufferInfo.renderPass = renderPass;
+		framebufferInfo.attachmentCount = attachments.size();
+		framebufferInfo.width = extent.width;
+		framebufferInfo.height = extent.height;
+		framebufferInfo.pAttachments = attachments.data();
+		framebufferInfo.layers = 1;
+
+		try {
+			bundle.frames[i].frameBuffer = logicalDevice.createFramebuffer(framebufferInfo);
+		}
+		catch (vk::SystemError) {
+			std::cerr << "Error whilst creating a framebuffer" << std::endl;
+			std::abort();
+		}
+	}
+}
+
