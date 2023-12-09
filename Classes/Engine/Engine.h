@@ -66,6 +66,9 @@ public:
 	bool shouldClose = false;
 	bool debug = false;
 
+	int FPS = 60;
+	std::chrono::milliseconds period = std::chrono::milliseconds(static_cast<long long>(1000 / 60));
+
 	Engine(bool _debug);
 	Engine();
 	~Engine();

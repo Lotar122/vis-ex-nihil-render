@@ -95,7 +95,7 @@ void Engine::SetupDeafult()
 	vulkanVersion.make_version(0, 1, 0, 0);
 	instanceCreateInfo.VulkanVersion = vulkanVersion;
 	std::vector<const char*> validationLayers = {
-		"VK_LAYER_KHRONOS_validation"
+		//"VK_LAYER_KHRONOS_validation"
 	};
 	instanceCreateInfo.validationLayers = validationLayers;
 	CreateVulkanInstance(instanceCreateInfo);

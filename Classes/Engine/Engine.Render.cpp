@@ -1,10 +1,12 @@
 #include "Engine.h"
 
 #include <chrono>
+#include <thread>
 
 void Engine::Draw(Scene* scene)
 {
 	logicalDevice.waitForFences(1, &bundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
+	auto start = std::chrono::high_resolution_clock::now();
 	uint32_t imageIndex{ 0 };
 	try {
 		vk::ResultValue acquire = logicalDevice.acquireNextImageKHR(bundle.swapchain, UINT64_MAX, bundle.frames[frameNumber].imageAvailable, nullptr);
@@ -62,6 +64,11 @@ void Engine::Draw(Scene* scene)
 		RecreateSwapchain();
 		return;
 	}
+
+	auto endTime = std::chrono::high_resolution_clock::now();
+	std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - start);
+	std::chrono::milliseconds sleepTime = period - elapsed;
+	if (sleepTime > std::chrono::milliseconds(0)) std::this_thread::sleep_for(sleepTime);
 
 	frameNumber = (frameNumber + 1) % maxFramesInFlight;
 }
