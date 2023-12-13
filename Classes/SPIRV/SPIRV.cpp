@@ -1,4 +1,4 @@
-#include "SPIRV.h"
+#include "SPIRV.hpp"
 
 std::vector<char> SPIRV::LoadFile(std::string filepath)
 {

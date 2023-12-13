@@ -8,20 +8,18 @@
 #include <set>
 #include <optional>
 #include <vector>
-#include "implicit_cast.h"
-#include "SPIRV/SPIRV.h"
+#include "implicit_cast.hpp"
+#include "SPIRV/SPIRV.hpp"
 
 #define USE_COLORS
-#include "TerminalColors.h"
+#include "TerminalColors.hpp"
 
-#include "App/App.h"
-#include "Engine.Structs.InData.h"
+#include "App/App.hpp"
+#include "Engine.Structs.InData.hpp"
 
-#include "RenderStructs.h"
+#include "RenderStructs.hpp"
 
-#include "Scene/Scene.h"
-
-#include "Classes/ClassApi.h"
+#include "Scene/Scene.hpp"
 
 //instead of #include "VertexBuffer/VertexBuffer.h"
 class VertexBuffer;
@@ -31,6 +29,38 @@ class VertexBuffer;
 
 class Engine
 {
+private:
+	struct Proxy {
+		const vk::Instance* instance;
+		const vk::PhysicalDevice* physicalDevice;
+		const vk::Device* logicalDevice;
+		const vk::RenderPass* renderPass;
+		const vk::Pipeline* pipeline;
+		const vk::CommandPool* commandPool;
+		const vk::CommandBuffer* commandBuffer;
+		const SwapChainBundle* swapchainBundle;
+
+		Proxy(
+			const vk::Instance* instance,
+			const vk::PhysicalDevice* physicalDevice,
+			const vk::Device* logicalDevice,
+			const vk::RenderPass* renderPass,
+			const vk::Pipeline* pipeline,
+			const vk::CommandPool* commandPool,
+			const vk::CommandBuffer* commandBuffer,
+			const SwapChainBundle* swapchainBundle
+		)
+		{
+			this->commandBuffer = commandBuffer;
+			this->commandPool = commandPool;
+			this->instance = instance;
+			this->logicalDevice = logicalDevice;
+			this->physicalDevice = physicalDevice;
+			this->pipeline = pipeline;
+			this->renderPass = renderPass;
+			this->swapchainBundle = swapchainBundle;
+		}
+	};
 public:
 	App* app = NULL;
 	bool shouldClose = false;
@@ -54,7 +84,7 @@ public:
 	//Draw
 	void Draw(Scene* scene);
 
-	EngineGet* get;
+	Proxy* get;
 
 private:
 	//picks the right device

@@ -1,6 +1,6 @@
 #pragma once
-#include "Engine/Engine.h"
-#include "Memory/Memory.h"
+#include "Engine/Engine.hpp"
+#include "Memory/Memory.hpp"
 #include <vulkan/vulkan.hpp>
 class VertexBuffer
 {

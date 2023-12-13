@@ -1,4 +1,4 @@
-#include "Engine.h"
+#include "Engine.hpp"
 
 void Engine::CreateVulkanInstance(InstanceCreateInfo& info)
 {
@@ -73,7 +73,7 @@ void Engine::CreateSurface()
 {
 	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Creating the surface " << GREEN << "[###]" << RESET << std::endl;
 	VkSurfaceKHR c_surface;
-	glfwCreateWindowSurface(instance, app->window, NULL, &c_surface);
+	glfwCreateWindowSurface(instance, app->get->window, NULL, &c_surface);
 	surface = c_surface;
 }
 
@@ -182,8 +182,8 @@ void Engine::PreConfigSwapchain()
 	}
 	if (!set2) presentMode = vk::PresentModeKHR::eFifo;
 
-	extent.setWidth(implicit_cast<uint32_t>(app->width));
-	extent.setHeight(implicit_cast<uint32_t>(app->height));
+	extent.setWidth(*(const_cast<uint32_t*>(app->get->width)));
+	extent.setHeight(*(const_cast<uint32_t*>(app->get->height)));
 	bool set3 = false;
 	if (support.capabilities.currentExtent.width != UINT32_MAX) {
 		extent = support.capabilities.currentExtent;
@@ -192,11 +192,11 @@ void Engine::PreConfigSwapchain()
 	else {
 		extent.width = std::min(
 			(int)support.capabilities.maxImageExtent.width,
-			std::max((int)support.capabilities.minImageExtent.width, (int)app->width)
+			std::max((int)support.capabilities.minImageExtent.width, (int)app->get->width)
 		);
 		extent.height = std::min(
 			(int)support.capabilities.maxImageExtent.height,
-			std::max((int)support.capabilities.minImageExtent.height, (int)app->height)
+			std::max((int)support.capabilities.minImageExtent.height, (int)app->get->height)
 		);
 	}
 

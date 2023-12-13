@@ -1,5 +1,5 @@
-#include "Engine.h"
-#include "VertexBuffer/VertexBuffer.h"
+#include "Engine.hpp"
+#include "VertexBuffer/VertexBuffer.hpp"
 
 #ifdef _DEBUG
 #define DEBUGFLAG true
@@ -13,16 +13,16 @@ Engine::Engine(bool _debug)
 
 	std::cout << YELLOW << "[Setup]" << RESET << "Constructor called, preparing the engine: " << std::endl;
 
-	get = new EngineGet;
-
-	get->commandBuffer = &commandBuffer;
-	get->commandPool = &commandPool;
-	get->instance = &instance;
-	get->logicalDevice = &logicalDevice;
-	get->physicalDevice = &device;
-	get->pipeline = &pipeline;
-	get->renderPass = &renderPass;
-	get->swapchainBundle = &bundle;
+	get = new Proxy(
+		&instance,
+		&device,
+		&logicalDevice,
+		&renderPass,
+		&pipeline,
+		&commandPool,
+		&commandBuffer,
+		&bundle
+	);
 }
 Engine::Engine()
 {
@@ -30,16 +30,16 @@ Engine::Engine()
 
 	std::cout << YELLOW << "[Setup]" << RESET << "Constructor called, preparing the engine: " << std::endl;
 
-	get = new EngineGet;
-
-	get->commandBuffer = &commandBuffer;
-	get->commandPool = &commandPool;
-	get->instance = &instance;
-	get->logicalDevice = &logicalDevice;
-	get->physicalDevice = &device;
-	get->pipeline = &pipeline;
-	get->renderPass = &renderPass;
-	get->swapchainBundle = &bundle;
+	get = new Proxy(
+		&instance,
+		&device,
+		&logicalDevice,
+		&renderPass,
+		&pipeline,
+		&commandPool,
+		&commandBuffer,
+		&bundle
+	);
 }
 Engine::~Engine()
 {
@@ -85,14 +85,14 @@ void Engine::RecreateSwapchain()
 {
 	int* pWidth = new int(0);
 	int* pHeight = new int(0);
-	glfwGetFramebufferSize(app->window, pWidth, pHeight);
-	app->width = *pWidth;
-	app->height = *pHeight;
-	while (app->width == 0 || app->height == 0)
+	glfwGetFramebufferSize(const_cast<GLFWwindow*>(app->get->window), pWidth, pHeight);
+	app->SetWidth(*pWidth);
+	app->SetHeight(*pHeight);
+	while (app->get->width == 0 || app->get->height == 0)
 	{
-		glfwGetFramebufferSize(app->window, pWidth, pHeight);
-		app->width = *pWidth;
-		app->height = *pHeight;
+		glfwGetFramebufferSize(const_cast<GLFWwindow*>(app->get->window), pWidth, pHeight);
+		app->SetWidth(*pWidth);
+		app->SetHeight(*pHeight);
 		glfwWaitEvents();
 	}
 	delete pWidth, pHeight;

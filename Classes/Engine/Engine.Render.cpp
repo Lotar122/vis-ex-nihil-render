@@ -1,9 +1,9 @@
-#include "Engine.h"
+#include "Engine.hpp"
 
 #include <chrono>
 #include <thread>
 
-#include "VertexBuffer/VertexBuffer.h"
+#include "VertexBuffer/VertexBuffer.hpp"
 
 void Engine::Draw(Scene* scene)
 {
