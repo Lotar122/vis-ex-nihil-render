@@ -13,6 +13,8 @@ Engine::Engine(bool _debug)
 
 	std::cout << YELLOW << "[Setup]" << RESET << "Constructor called, preparing the engine: " << std::endl;
 
+	get = new EngineGet;
+
 	get->commandBuffer = &commandBuffer;
 	get->commandPool = &commandPool;
 	get->instance = &instance;
@@ -27,6 +29,8 @@ Engine::Engine()
 	debug = false;
 
 	std::cout << YELLOW << "[Setup]" << RESET << "Constructor called, preparing the engine: " << std::endl;
+
+	get = new EngineGet;
 
 	get->commandBuffer = &commandBuffer;
 	get->commandPool = &commandPool;

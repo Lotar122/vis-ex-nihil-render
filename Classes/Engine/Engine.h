@@ -54,12 +54,6 @@ public:
 	//Draw
 	void Draw(Scene* scene);
 
-	inline const vk::Device* GetLogicalDevice() {
-		return &logicalDevice;
-	}
-	inline const vk::PhysicalDevice* GetPhysicalDevice() {
-		return &device;
-	}
 	EngineGet* get;
 
 private:

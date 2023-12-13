@@ -17,7 +17,7 @@ public:
 		createInfo.usage = usage;
 
 		Buffer buffer;
-		buffer.buffer = engine->GetLogicalDevice()->createBuffer(createInfo);
+		buffer.buffer = engine->get->logicalDevice->createBuffer(createInfo);
 		AllocateBufferMemory(buffer, engine);
 
 		return buffer;
@@ -25,7 +25,7 @@ public:
 
 	static uint32_t FindMemoryTypeIndex(Engine* engine, uint32_t supportedMemoryIndex, vk::MemoryPropertyFlags properties)
 	{
-		vk::PhysicalDeviceMemoryProperties memoryProperties = engine->GetPhysicalDevice()->getMemoryProperties();
+		vk::PhysicalDeviceMemoryProperties memoryProperties = engine->get->physicalDevice->getMemoryProperties();
 
 		for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
 		{
@@ -40,7 +40,7 @@ public:
 
 	static void AllocateBufferMemory(Buffer& buffer, Engine* engine)
 	{
-		vk::MemoryRequirements memoryRequirements = engine->GetLogicalDevice()->getBufferMemoryRequirements(buffer.buffer);
+		vk::MemoryRequirements memoryRequirements = engine->get->logicalDevice->getBufferMemoryRequirements(buffer.buffer);
 
 		vk::MemoryAllocateInfo allocInfo = {};
 		allocInfo.allocationSize = memoryRequirements.size;
@@ -48,7 +48,7 @@ public:
 			engine, memoryRequirements.memoryTypeBits,
 			vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
 		);
-		buffer.memory = engine->GetLogicalDevice()->allocateMemory(allocInfo);
-		engine->GetLogicalDevice()->bindBufferMemory(buffer.buffer, buffer.memory, 0);
+		buffer.memory = engine->get->logicalDevice->allocateMemory(allocInfo);
+		engine->get->logicalDevice->bindBufferMemory(buffer.buffer, buffer.memory, 0);
 	}
 };
