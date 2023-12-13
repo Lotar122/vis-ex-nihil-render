@@ -29,16 +29,21 @@
     <ClCompile Include="Classes\SPIRV\SPIRV.cpp" />
     <ClCompile Include="Classes\Engine\Engine.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Classes\Memory\Memory.cpp" />
+    <ClCompile Include="Classes\VertexBuffer\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\App\App.h" />
+    <ClInclude Include="Classes\ClassAPI.h" />
     <ClInclude Include="Classes\Engine\RenderStructs.h" />
     <ClInclude Include="Classes\Pipeline\Pipeline.h" />
     <ClInclude Include="Classes\Scene\Scene.h" />
     <ClInclude Include="Classes\SPIRV\SPIRV.h" />
     <ClInclude Include="Classes\Engine\Engine.h" />
     <ClInclude Include="implicit_cast.h" />
+    <ClInclude Include="Classes\Memory\Memory.h" />
     <ClInclude Include="TerminalColors.h" />
+    <ClInclude Include="Classes\VertexBuffer\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />
@@ -51,7 +56,7 @@
     <ProjectGuid>{cfb61ed5-f388-441f-85fd-070f1208e150}</ProjectGuid>
     <RootNamespace>Vulkan</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>L3D-engine</ProjectName>
+    <ProjectName>nihil</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

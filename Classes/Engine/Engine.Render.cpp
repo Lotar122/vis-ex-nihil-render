@@ -3,6 +3,8 @@
 #include <chrono>
 #include <thread>
 
+#include "VertexBuffer/VertexBuffer.h"
+
 void Engine::Draw(Scene* scene)
 {
 	logicalDevice.waitForFences(1, &bundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
@@ -13,7 +15,6 @@ void Engine::Draw(Scene* scene)
 		imageIndex = acquire.value;
 	}
 	catch (vk::OutOfDateKHRError err) {
-		std::cout << "SwapChain recreation" << std::endl;
 		RecreateSwapchain();
 		return;
 	}
@@ -96,6 +97,13 @@ void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t image
 
 	commandBuffer.beginRenderPass(passInfo, vk::SubpassContents::eInline);
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
+	vk::Buffer vertexBuffers[] = {
+		vertexBuffer->buffer.buffer
+	};
+	vk::DeviceSize offsets[] = {
+		0
+	};
+	commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets);
 	for (glm::vec3 position : scene->triangleVertices)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), position);

@@ -11,6 +11,8 @@
     <ClCompile Include="Classes\Engine\Engine.Render.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Structs.InData.h" />
     <ClCompile Include="Classes\Scene\Scene.cpp" />
+    <ClCompile Include="Classes\Memory\Memory.cpp" />
+    <ClCompile Include="Classes\VertexBuffer\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\Pipeline\Pipeline.h" />
@@ -21,6 +23,9 @@
     <ClInclude Include="Classes\Engine\Engine.h" />
     <ClInclude Include="Classes\Engine\RenderStructs.h" />
     <ClInclude Include="Classes\Scene\Scene.h" />
+    <ClInclude Include="Classes\Memory\Memory.h" />
+    <ClInclude Include="Classes\VertexBuffer\VertexBuffer.h" />
+    <ClInclude Include="Classes\ClassAPI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />

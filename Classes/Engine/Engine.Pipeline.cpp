@@ -34,10 +34,28 @@ void Engine::PipelineSetup()
 
 	if (debug) std::cout << YELLOW << "[Setup]" << MAGENTA << "->" << YELLOW << "[Pipeline]" << RESET << "Creating a vertex input " << GREEN << "[###]" << RESET << std::endl;
 	//Vertex Input
+	vk::VertexInputBindingDescription bindingDesc = {};
+	bindingDesc.binding = 0;
+	bindingDesc.stride = 6 * sizeof(float);
+	bindingDesc.inputRate = vk::VertexInputRate::eVertex;
+
+	std::array<vk::VertexInputAttributeDescription, 2> attributes;
+	attributes[0].binding = 0;
+	attributes[0].location = 0;
+	attributes[0].format = vk::Format::eR32G32B32Sfloat;
+	attributes[0].offset = 0;
+
+	attributes[1].binding = 0;
+	attributes[1].location = 1;
+	attributes[1].format = vk::Format::eR32G32B32Sfloat;
+	attributes[1].offset = 3 * sizeof(float);
+
 	vk::PipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.flags = vk::PipelineVertexInputStateCreateFlags();
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
+	vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
+	vertexInputInfo.vertexAttributeDescriptionCount = 2;
+	vertexInputInfo.pVertexAttributeDescriptions = attributes.data();
 	pipelineInfo.pVertexInputState = &vertexInputInfo;
 
 	if (debug) std::cout << YELLOW << "[Setup]" << MAGENTA << "->" << YELLOW << "[Pipeline]" << RESET << "Creating a input assembly " << GREEN << "[###]" << RESET << std::endl;

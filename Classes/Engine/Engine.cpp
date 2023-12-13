@@ -1,16 +1,41 @@
 #include "Engine.h"
+#include "VertexBuffer/VertexBuffer.h"
+
+#ifdef _DEBUG
+#define DEBUGFLAG true
+#else
+#define DEBUGFLAG false
+#endif
 
 Engine::Engine(bool _debug)
 {
 	debug = _debug;
 
 	std::cout << YELLOW << "[Setup]" << RESET << "Constructor called, preparing the engine: " << std::endl;
+
+	get->commandBuffer = &commandBuffer;
+	get->commandPool = &commandPool;
+	get->instance = &instance;
+	get->logicalDevice = &logicalDevice;
+	get->physicalDevice = &device;
+	get->pipeline = &pipeline;
+	get->renderPass = &renderPass;
+	get->swapchainBundle = &bundle;
 }
 Engine::Engine()
 {
 	debug = false;
 
 	std::cout << YELLOW << "[Setup]" << RESET << "Constructor called, preparing the engine: " << std::endl;
+
+	get->commandBuffer = &commandBuffer;
+	get->commandPool = &commandPool;
+	get->instance = &instance;
+	get->logicalDevice = &logicalDevice;
+	get->physicalDevice = &device;
+	get->pipeline = &pipeline;
+	get->renderPass = &renderPass;
+	get->swapchainBundle = &bundle;
 }
 Engine::~Engine()
 {
@@ -24,6 +49,8 @@ Engine::~Engine()
 	logicalDevice.destroyRenderPass(renderPass);
 
 	destroySwapchain();
+
+	delete vertexBuffer;
 
 	logicalDevice.waitIdle();
 	logicalDevice.destroy();
@@ -55,7 +82,6 @@ void Engine::RecreateSwapchain()
 	int* pWidth = new int(0);
 	int* pHeight = new int(0);
 	glfwGetFramebufferSize(app->window, pWidth, pHeight);
-	//std::cout << "Attempting to recreate: {width: " << *pWidth << ", height: " << *pHeight << "}" << std::endl;
 	app->width = *pWidth;
 	app->height = *pHeight;
 	while (app->width == 0 || app->height == 0)
@@ -94,8 +120,10 @@ void Engine::SetupDeafult()
 	Version vulkanVersion = {};
 	vulkanVersion.make_version(0, 1, 0, 0);
 	instanceCreateInfo.VulkanVersion = vulkanVersion;
+	std::string validationlayers = "VK_LAYER_KHRONOS_validation";
+	if (!DEBUGFLAG) validationlayers = "";
 	std::vector<const char*> validationLayers = {
-		//"VK_LAYER_KHRONOS_validation"
+		validationlayers.c_str()
 	};
 	instanceCreateInfo.validationLayers = validationLayers;
 	CreateVulkanInstance(instanceCreateInfo);
@@ -124,6 +152,8 @@ void Engine::SetupDeafult()
 	RenderSetup();
 
 	finishSetup();
+
+	vertexBuffer = new VertexBuffer(this);
 }
 
 void Engine::setApp(App* _app)
