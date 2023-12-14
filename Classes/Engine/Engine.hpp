@@ -9,17 +9,17 @@
 #include <optional>
 #include <vector>
 #include "implicit_cast.hpp"
-#include "SPIRV/SPIRV.hpp"
+#include "Classes/SPIRV/SPIRV.hpp"
 
 #define USE_COLORS
 #include "TerminalColors.hpp"
 
-#include "App/App.hpp"
+#include "Classes/App/App.hpp"
 #include "Engine.Structs.InData.hpp"
 
 #include "RenderStructs.hpp"
 
-#include "Scene/Scene.hpp"
+#include "Classes/Scene/Scene.hpp"
 
 //instead of #include "VertexBuffer/VertexBuffer.h"
 class VertexBuffer;

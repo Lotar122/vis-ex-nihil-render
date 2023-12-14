@@ -23,7 +23,7 @@
     <ClCompile Include="Classes\Engine\Engine.Pipeline.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Primary.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Render.cpp" />
-    <ClCompile Include="Classes\Engine\Engine.Structs.InData.h" />
+    <ClCompile Include="Classes\Engine\Engine.Structs.InData.hpp" />
     <ClCompile Include="Classes\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Classes\Scene\Scene.cpp" />
     <ClCompile Include="Classes\SPIRV\SPIRV.cpp" />
@@ -33,17 +33,15 @@
     <ClCompile Include="Classes\VertexBuffer\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Classes\App\App.h" />
-    <ClInclude Include="Classes\ClassAPI.h" />
-    <ClInclude Include="Classes\Engine\RenderStructs.h" />
-    <ClInclude Include="Classes\Pipeline\Pipeline.h" />
-    <ClInclude Include="Classes\Scene\Scene.h" />
-    <ClInclude Include="Classes\SPIRV\SPIRV.h" />
-    <ClInclude Include="Classes\Engine\Engine.h" />
-    <ClInclude Include="implicit_cast.h" />
-    <ClInclude Include="Classes\Memory\Memory.h" />
-    <ClInclude Include="TerminalColors.h" />
-    <ClInclude Include="Classes\VertexBuffer\VertexBuffer.h" />
+    <ClInclude Include="Classes\App\App.hpp" />
+    <ClInclude Include="Classes\Engine\RenderStructs.hpp" />
+    <ClInclude Include="Classes\Pipeline\Pipeline.hpp" />
+    <ClInclude Include="Classes\Scene\Scene.hpp" />
+    <ClInclude Include="Classes\SPIRV\SPIRV.hpp" />
+    <ClInclude Include="Classes\Engine\Engine.hpp" />
+    <ClInclude Include="Classes\Memory\Memory.hpp" />
+    <ClInclude Include="Classes\VertexBuffer\VertexBuffer.hpp" />
+    <ClInclude Include="implicit_cast.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />

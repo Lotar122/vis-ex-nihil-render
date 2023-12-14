@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <GLFW/glfw3.h>
-#include "Scene/Scene.hpp"
+#include "Classes/Scene/Scene.hpp"
 
 class Engine;
 

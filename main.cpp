@@ -13,7 +13,7 @@
 #define CUSTOM_INCLUDES
 //#include "MaxwellsEngine/MaxwellsEngine.h"
 
-#include "App/App.h"
+#include "App/App.hpp"
 
 //Installing GLFW is a nightmare
 //Installing GLFW is a nightmare
@@ -102,6 +102,29 @@ public:
 };
 
 
+void displayBits(uint16_t value) {
+	const int bits = 8 * sizeof(uint16_t);
+	for (int i = bits - 1; i >= 0; --i) {
+		uint16_t mask = 1 << i;
+		std::cout << ((value & mask) ? '1' : '0');
+
+		// Add a space for better readability
+		if (i % 4 == 0) {
+			std::cout << ' ';
+		}
+	}
+	std::cout << std::endl;
+}
+
+void setBit(uint8_t& number, int bitPosition) {
+	// Set the bit at the specified position to 1
+	number |= (1 << bitPosition);
+}
+
+void clearBit(uint8_t& number, int bitPosition) {
+	// Clear the bit at the specified position to 0
+	number &= ~(1 << bitPosition);
+}
 
 int main()
 {
@@ -117,10 +140,11 @@ int main()
 	//delete engine;
 
 
-
 	Engine* engine = new Engine(true);
 
 	App* app = new App(1920, 1080, "Vulkan", engine);
+
+	engine->Setup();
 
 	shaderInfo info = {};
 	info.num = 10;
@@ -133,13 +157,17 @@ int main()
 	compArr.AttachComponent(comp);
 
 	shaderInfo* inf = (shaderInfo*)compArr.getRawPtr(0);
-	std::cout << inf->text << std::endl;
+	//std::cout << inf->text << std::endl;
 
-	while (!app->shouldClose)
+	while (!*(app->get->shouldClose))
 	{
 		app->handle();
-		app->engine->Draw(app->scene);
+		app->get->engine->Draw(app->get->scene);
 	}
+
+	//error causing (intentional) 
+	//std::cout << *((int*)nullptr) << std::endl;
+	//i read from a nullptr to cause a read access vilation error
 
 	//getchar();
 	//getchar();
