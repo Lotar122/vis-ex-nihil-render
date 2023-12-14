@@ -1,6 +1,6 @@
 #pragma once
-#include "Engine/Engine.hpp"
-#include "Memory/Memory.hpp"
+#include "Classes/Engine/Engine.hpp"
+#include "Classes/Memory/Memory.hpp"
 #include <vulkan/vulkan.hpp>
 
 namespace nihil {

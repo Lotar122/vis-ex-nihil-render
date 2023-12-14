@@ -14,12 +14,12 @@
 #define USE_COLORS
 #include "TerminalColors.hpp"
 
-#include "App/App.hpp"
+#include "Classes/App/App.hpp"
 #include "Engine.Structs.InData.hpp"
 
 #include "RenderStructs.hpp"
 
-#include "Scene/Scene.hpp"
+#include "Classes/Scene/Scene.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
