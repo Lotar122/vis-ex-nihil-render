@@ -4,11 +4,13 @@
 #include <fstream>
 #include <sstream>
 
-//the super-class (static) that provides functions to work with the SPIR-V format
-class SPIRV
-{
-public:
-	//loads the contents od a .spv file to a vector of char's
-	static std::vector<char> LoadFile(std::string filepath);
-};
+namespace nihil {
+	//the class (static) that provides functions to work with the SPIR-V format
+	class SPIRV
+	{
+	public:
+		//loads the contents of a .spv file to a vector of chars
+		static std::vector<char> LoadFile(std::string filepath);
+	};
 
+}

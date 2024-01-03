@@ -1,20 +1,16 @@
 #include "Engine.hpp"
 
-void Engine::CreateVulkanInstance(InstanceCreateInfo& info)
-{
-		//"VK_LAYER_KHRONOS_validation",
-
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Creating a Vulkan instance ";
+void nihil::Engine::CreateVulkanInstance(VulkanInstanceCreateInfo createInfo) {
 	uint32_t version{ 0 };
 	version &= ~(0xFFFU);
 	version = VK_MAKE_API_VERSION(0, 1, 0, 0);
 	vkEnumerateInstanceVersion(&version);
 	vk::ApplicationInfo appInfo = vk::ApplicationInfo(
-		info.AppName.c_str(),
-		VK_MAKE_API_VERSION(info.AppVersion.variant, info.AppVersion.major, info.AppVersion.minor, info.AppVersion.patch),
-		"Maxwells Egnine",
+		createInfo.appName.c_str(),
+		VK_MAKE_API_VERSION(createInfo.appVersion.variant, createInfo.appVersion.major, createInfo.appVersion.minor, createInfo.appVersion.patch),
+		"Nihil",
 		version,
-		VK_MAKE_API_VERSION(info.VulkanVersion.variant, info.VulkanVersion.major, info.VulkanVersion.minor, info.VulkanVersion.patch)
+		VK_MAKE_API_VERSION(createInfo.vulkanVersion.variant, createInfo.vulkanVersion.major, createInfo.vulkanVersion.minor, createInfo.vulkanVersion.patch)
 	);
 	uint32_t extensionCount;
 	const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&extensionCount);
@@ -22,64 +18,58 @@ void Engine::CreateVulkanInstance(InstanceCreateInfo& info)
 	// Create a vector of const char* from glfwExtensions
 	std::vector<const char*> extensions(glfwExtensions, glfwExtensions + extensionCount);
 
-	vk::InstanceCreateInfo createInfo = vk::InstanceCreateInfo(
+	std::vector<const char*> validationLayers;
+
+	if (createInfo.validationLayers) {
+		validationLayers = {
+			"VK_LAYER_KHRONOS_validation"
+		};
+	}
+	else {
+		validationLayers = {};
+	}
+
+	vk::InstanceCreateInfo VKCreateInfo = vk::InstanceCreateInfo(
 		vk::InstanceCreateFlags(),
 		&appInfo,
-		implicit_cast<uint32_t>(info.validationLayers.size()), info.validationLayers.data(),
-		implicit_cast<uint32_t>(extensions.size()), extensions.data()
+		static_cast<uint32_t>(validationLayers.size()), validationLayers.data(),
+		static_cast<uint32_t>(extensions.size()), extensions.data()
 	);
 
 	try {
-		instance = vk::createInstance(createInfo);
+		instance = vk::createInstance(VKCreateInfo);
 	}
 	catch (vk::SystemError err) {
-		std::cerr << RED << "[###]" << RESET << std::endl;
-		error = true;
-		finishSetup();
 		std::abort();
 	}
-	std::cout << GREEN << "[###]" << RESET << std::endl;
 }
 
-void Engine::PickDevice()
+void nihil::Engine::PickPhysicalDevice()
 {
 	bool foundDevice = false;
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Picking the device:" << std::endl;
 	std::vector<vk::PhysicalDevice> availableDevices = instance.enumeratePhysicalDevices();
 	for (const vk::PhysicalDevice& devices : availableDevices)
 	{
-		std::cout << "Enum" << std::endl;
 		if (isSuitable(devices))
 		{
 			device = devices;
 			foundDevice = true;
-			std::cout << YELLOW << "[Setup]" << RESET << MAGENTA << "->" << RESET << YELLOW << "[Pick-Device]" << RESET << "found suitable device  "<<MAGENTA<<"--->  " << CYAN << device.getProperties().deviceName << " ";
 		}
 	}
 	if (!foundDevice) {
-		std::cerr << YELLOW << "[Setup]" << RESET << MAGENTA << "->" << RESET << YELLOW << "[Pick-Device]" << RESET << "Couldn't find suitable device " << RED << "[###]" << RESET << std::endl;
-		error = true;
-		finishSetup();
 		std::abort();
 	}
-	else {
-		std::cout << GREEN << "[###]" << RESET << std::endl;
-	}
-
-	//add multiple GPU handling in future
 }
 
-void Engine::CreateSurface()
+void nihil::Engine::CreateVulkanSurface(GLFWwindow* window)
 {
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Creating the surface " << GREEN << "[###]" << RESET << std::endl;
 	VkSurfaceKHR c_surface;
-	glfwCreateWindowSurface(instance, app->get->window, NULL, &c_surface);
+	glfwCreateWindowSurface(instance, window, NULL, &c_surface);
 	surface = c_surface;
 }
 
-void Engine::CreateQueues()
+void nihil::Engine::CreateVulkanQueues()
 {
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Creating the queues " << GREEN << "[###]" << RESET << std::endl;
 	std::vector<vk::QueueFamilyProperties> queueFamilies = device.getQueueFamilyProperties();
 	int iterator1 = 0;
 	for (const vk::QueueFamilyProperties& queueFamily : queueFamilies)
@@ -102,19 +92,18 @@ void Engine::CreateQueues()
 			}
 		iterator1++;
 	}
-	uniqueFAMIND;
 	uniqueFAMIND.push_back(famind.graphics.value());
 	if (famind.graphics.value() != famind.present.value())
 	{
 		uniqueFAMIND.push_back(famind.present.value());
 	}
+
+	//finalize the queue creation in CreateVulkanLogicalDevice
 }
 
-void Engine::CreateLogicDevice()
+void nihil::Engine::CreateVulkanLogicalDevice()
 {
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Creating a Vulkan logical Device ";
 	float queuepriority = 1.0f;
-	//use famind
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfo;
 	for (uint32_t index : uniqueFAMIND)
 	{
@@ -138,26 +127,24 @@ void Engine::CreateLogicDevice()
 		logicalDevice = device.createDevice(deviceInfo);
 	}
 	catch (vk::SystemError err) {
-		std::cerr << RED << "[###]" << RESET << std::endl;
-		error = true;
-		finishSetup();
 		std::abort();
 	}
-	std::cout << GREEN << "[###]" << RESET << std::endl;
-}
 
-void Engine::PreConfigSwapchain()
-{
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Pre-Configuring the swapchain " << GREEN << "[###]" << RESET << std::endl;
 	graphicsQueue = logicalDevice.getQueue(famind.graphics.value(), 0);
 	presentQueue = logicalDevice.getQueue(famind.present.value(), 0);
+}
 
-	support;
+nihil::SwapchainConfiguration nihil::Engine::CreateSwapchainConfiguration(SwapchainConfigCreateInfo createInfo)
+{
+	SwapchainSupportDetails support;
+	vk::SurfaceFormatKHR surfaceFormat;
+	vk::PresentModeKHR presentMode;
+	vk::Extent2D extent;
+
 	support.capabilities = device.getSurfaceCapabilitiesKHR(surface);
 	support.formats = device.getSurfaceFormatsKHR(surface);
 	support.presentModes = device.getSurfacePresentModesKHR(surface);
 
-	surfaceFormat;
 	bool set1 = false;
 	for (const vk::SurfaceFormatKHR& format : support.formats)
 	{
@@ -167,9 +154,8 @@ void Engine::PreConfigSwapchain()
 			break;
 		}
 	}
-	if (!set1) { if (support.formats.size() > 0) { surfaceFormat = support.formats[0]; } else { std::cerr << "failed to create swapchain no formats specified" << std::endl; } }
+	if (!set1) { if (support.formats.size() > 0) { surfaceFormat = support.formats[0]; } else { std::abort(); } }
 
-	presentMode;
 	bool set2 = false;
 	for (const vk::PresentModeKHR& pForm : support.presentModes)
 	{
@@ -182,8 +168,8 @@ void Engine::PreConfigSwapchain()
 	}
 	if (!set2) presentMode = vk::PresentModeKHR::eFifo;
 
-	extent.setWidth(*(const_cast<uint32_t*>(app->get->width)));
-	extent.setHeight(*(const_cast<uint32_t*>(app->get->height)));
+	extent.setWidth(createInfo.windowWidth);
+	extent.setHeight(createInfo.windowHeight);
 	bool set3 = false;
 	if (support.capabilities.currentExtent.width != UINT32_MAX) {
 		extent = support.capabilities.currentExtent;
@@ -192,64 +178,66 @@ void Engine::PreConfigSwapchain()
 	else {
 		extent.width = std::min(
 			(int)support.capabilities.maxImageExtent.width,
-			std::max((int)support.capabilities.minImageExtent.width, (int)app->get->width)
+			std::max((int)support.capabilities.minImageExtent.width, (int)createInfo.windowWidth)
 		);
 		extent.height = std::min(
 			(int)support.capabilities.maxImageExtent.height,
-			std::max((int)support.capabilities.minImageExtent.height, (int)app->get->height)
+			std::max((int)support.capabilities.minImageExtent.height, (int)createInfo.windowHeight)
 		);
 	}
 
-	imageCount = std::min(
+	uint8_t imageCount = std::min(
 		support.capabilities.maxImageCount,
-		support.capabilities.minImageCount + 1
+		support.capabilities.minImageCount + (int)createInfo.preferredBuffering
 	);
+	if (imageCount >= 3) {
+		imageCount = 3;
+	}
 
-	swapCreateInfo = vk::SwapchainCreateInfoKHR(
+	vk::SwapchainCreateInfoKHR swapchainCreateInfo = vk::SwapchainCreateInfoKHR(
 		vk::SwapchainCreateFlagsKHR(), surface, imageCount, surfaceFormat.format, surfaceFormat.colorSpace,
 		extent, 1, vk::ImageUsageFlagBits::eColorAttachment
 	);
 
 	if (famind.graphics.value() != famind.present.value())
 	{
-		swapCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-		swapCreateInfo.queueFamilyIndexCount = uniqueFAMIND.size();
-		swapCreateInfo.pQueueFamilyIndices = uniqueFAMIND.data();
+		swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+		swapchainCreateInfo.queueFamilyIndexCount = uniqueFAMIND.size();
+		swapchainCreateInfo.pQueueFamilyIndices = uniqueFAMIND.data();
 	}
 	else
 	{
-		swapCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
+		swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
 	}
-	swapCreateInfo.preTransform = support.capabilities.currentTransform;
-	swapCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-	swapCreateInfo.presentMode = presentMode;
-	swapCreateInfo.clipped = VK_TRUE;
-	swapCreateInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
+	swapchainCreateInfo.preTransform = support.capabilities.currentTransform;
+	swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+	swapchainCreateInfo.presentMode = presentMode;
+	swapchainCreateInfo.clipped = VK_TRUE;
+	swapchainCreateInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
+
+	return swapchainCreateInfo;
 }
 
-void Engine::CreateSwapchain()
+void nihil::Engine::CreateSwapchain(SwapchainConfiguration createInfo)
 {
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Creating the swapchain ";
+	swapchainConfiguration = createInfo;
 	try {
-		bundle.swapchain = logicalDevice.createSwapchainKHR(swapCreateInfo);
+		swapchainBundle.swapchain = logicalDevice.createSwapchainKHR(createInfo);
 	}
 	catch (vk::SystemError err) {
-		std::cerr << RED << "[###]" << RESET << std::endl;
-		error = true;
-		finishSetup();
 		std::abort();
 	}
-	std::cout << GREEN << "[###]" << RESET << std::endl;
 
-	bundle.format = surfaceFormat.format;
-	bundle.extent = extent;
+	swapchainBundle.format = createInfo.imageFormat;
+	swapchainBundle.extent = createInfo.imageExtent;
+
+	std::cout << createInfo.imageExtent.width << createInfo.imageExtent.height << std::endl;
 }
 
-void Engine::CreateImageViews()
+void nihil::Engine::CreateImageViews()
 {
-	if (debug) std::cout << YELLOW << "[Setup]" << RESET << "Creating image views " << GREEN << "[###]" << RESET << std::endl;
-	std::vector <vk::Image> images = logicalDevice.getSwapchainImagesKHR(bundle.swapchain);
-	bundle.frames.resize(images.size());
+	std::vector <vk::Image> images = logicalDevice.getSwapchainImagesKHR(swapchainBundle.swapchain);
+	swapchainBundle.frames.resize(images.size());
 	for (size_t i = 0; i < images.size(); i++)
 	{
 		vk::ImageViewCreateInfo imageViewCreateInfo = {};
@@ -267,9 +255,9 @@ void Engine::CreateImageViews()
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
 		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-		bundle.frames[i].image = images[i];
-		bundle.frames[i].view = logicalDevice.createImageView(imageViewCreateInfo);
+		swapchainBundle.frames[i].image = images[i];
+		swapchainBundle.frames[i].view = logicalDevice.createImageView(imageViewCreateInfo);
 	}
-	maxFramesInFlight = bundle.frames.size();
+	maxFramesInFlight = swapchainBundle.frames.size();
 	frameNumber = 0;
 }

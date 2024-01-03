@@ -1,5 +1,7 @@
 #include "Engine.hpp"
 
+using namespace nihil;
+
 void Engine::CreateShaderModule(std::string filepath, vk::Device device, vk::ShaderModule** ppShaderModule)
 {
 	std::cout << YELLOW << "[Setup]" << MAGENTA << "->" << YELLOW << "[Pipeline]" << MAGENTA << "->" << YELLOW << "[Create-Shader]" << RESET << "Creating shader module ";
@@ -80,14 +82,14 @@ void Engine::PipelineSetup()
 	vk::Viewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = extent.width;
-	viewport.height = extent.height;
+	viewport.width = swapchainBundle.extent.width;
+	viewport.height = swapchainBundle.extent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 	vk::Rect2D scissor = {};
 	scissor.offset.x = 0.0f;
 	scissor.offset.y = 0.0f;
-	scissor.extent = extent;
+	scissor.extent = swapchainBundle.extent;
 	vk::PipelineViewportStateCreateInfo viewportInfo = {};
 	viewportInfo.flags = vk::PipelineViewportStateCreateFlags();
 	viewportInfo.viewportCount = 1;
@@ -182,7 +184,7 @@ void Engine::PipelineSetup()
 	//in class declaration: vk::RenderPass renderPass;
 	vk::AttachmentDescription colorAttachment = {};
 	colorAttachment.flags = vk::AttachmentDescriptionFlags();
-	colorAttachment.format = bundle.format;
+	colorAttachment.format = swapchainBundle.format;
 	colorAttachment.samples = vk::SampleCountFlagBits::e1;
 	colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 	colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;

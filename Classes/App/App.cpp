@@ -1,6 +1,8 @@
 #include "App.hpp"
 
-App::App(uint32_t width, uint32_t height, std::string name, Engine* _engine)
+using namespace nihil;
+
+App::App(AppCreationArgs args)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -8,23 +10,27 @@ App::App(uint32_t width, uint32_t height, std::string name, Engine* _engine)
 
 	scene = new Scene();
 
+	this->engine = args.engine;
+	this->width = args.width;
+	this->height = args.height;
+	this->name = args.name;
+
 	get = new Proxy(
 		&width,
 		&height,
 		&name,
-		_engine,
+		engine,
 		scene,
 		window,
-		&shouldClose
+		&shouldClose,
+		&appVersion,
+		&vulkanVersion
 	);
 
 	window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
 
-	get->engine = _engine;
-	get->scene = scene;
 	get->window = window;
 
-	engine = _engine;
 	engine->setApp(this);
 }
 App::~App()
@@ -39,5 +45,5 @@ void App::handle()
 {
 	shouldClose = glfwWindowShouldClose(window);
 	glfwPollEvents();
-	engine->Draw(scene);
+	//engine->Draw(scene);
 }

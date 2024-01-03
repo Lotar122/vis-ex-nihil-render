@@ -1,5 +1,7 @@
 #include "SPIRV.hpp"
 
+using namespace nihil;
+
 std::vector<char> SPIRV::LoadFile(std::string filepath)
 {
 	std::ifstream file{ filepath, std::ios::ate | std::ios::binary };

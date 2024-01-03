@@ -7,6 +7,8 @@
 #define DEBUGFLAG false
 #endif
 
+using namespace nihil;
+
 Engine::Engine(bool _debug)
 {
 	debug = _debug;
@@ -21,7 +23,7 @@ Engine::Engine(bool _debug)
 		&pipeline,
 		&commandPool,
 		&commandBuffer,
-		&bundle
+		&swapchainBundle
 	);
 }
 Engine::Engine()
@@ -38,7 +40,7 @@ Engine::Engine()
 		&pipeline,
 		&commandPool,
 		&commandBuffer,
-		&bundle
+		&swapchainBundle
 	);
 }
 Engine::~Engine()
@@ -70,7 +72,7 @@ void Engine::destroySwapchain()
 {
 	std::cout << std::endl << YELLOW << "[Setup]" << RESET << " Destroying the swapchain " << GREEN << "[###]" << std::endl;
 	logicalDevice.waitIdle();
-	for (const SwapChainFrame& frame : bundle.frames)
+	for (const SwapChainFrame& frame : swapchainBundle.frames)
 	{
 		logicalDevice.destroySemaphore(frame.imageAvailable);
 		logicalDevice.destroySemaphore(frame.renderFinished);
@@ -78,7 +80,7 @@ void Engine::destroySwapchain()
 		logicalDevice.destroyImageView(frame.view);
 		logicalDevice.destroyFramebuffer(frame.frameBuffer);
 	}
-	logicalDevice.destroySwapchainKHR(bundle.swapchain);
+	logicalDevice.destroySwapchainKHR(swapchainBundle.swapchain);
 }
 
 void Engine::RecreateSwapchain()
@@ -98,8 +100,12 @@ void Engine::RecreateSwapchain()
 	delete pWidth, pHeight;
 	logicalDevice.waitIdle();
 	destroySwapchain();
-	PreConfigSwapchain();
-	CreateSwapchain();
+	SwapchainConfigCreateInfo configInfo = {};
+	configInfo.preferredBuffering = BufferingMode::eTriple;
+	configInfo.windowHeight = *app->get->height;
+	configInfo.windowWidth = *app->get->width;
+	swapchainConfiguration = CreateSwapchainConfiguration(configInfo);
+	CreateSwapchain(swapchainConfiguration);
 	CreateImageViews();
 	createFrameBuffers();
 	createSyncObjects();
@@ -116,35 +122,35 @@ void Engine::SetupDeafult()
 {
 	if (app == NULL) { std::cerr << "App is nullptr" << std::endl; std::abort(); }
 
-	InstanceCreateInfo instanceCreateInfo = {};
-	instanceCreateInfo.AppName = "Sample App";
-	Version appVersion = {};
-	appVersion.make_version(0, 1, 0, 0);
-	instanceCreateInfo.AppVersion = appVersion;
-	Version vulkanVersion = {};
-	vulkanVersion.make_version(0, 1, 0, 0);
-	instanceCreateInfo.VulkanVersion = vulkanVersion;
-	std::string validationlayers = "VK_LAYER_KHRONOS_validation";
-	if (!DEBUGFLAG) validationlayers = "";
-	std::vector<const char*> validationLayers = {
-		validationlayers.c_str()
-	};
-	instanceCreateInfo.validationLayers = validationLayers;
-	CreateVulkanInstance(instanceCreateInfo);
-	PickDevice();
-	CreateSurface();
+	VulkanInstanceCreateInfo instanceInfo = {};
+	instanceInfo.appName = *app->get->name;
+	instanceInfo.appVersion = *app->get->appVersion;
+	instanceInfo.vulkanVersion = *app->get->vulkanVersion;
+	//deafult false
+	instanceInfo.validationLayers = true;
 
-	//implement in future as for now no functionality needs to customize this
-	CreateQueues();
+	//Creation of the vulkan instance
+	CreateVulkanInstance(instanceInfo);
 
-	//same as queues
-	CreateLogicDevice();
+	CreateVulkanSurface(app->get->window);
 
-	//enable the user to select the options as triple buffering double buffering ETC.
-	PreConfigSwapchain();
+	PickPhysicalDevice();
 
-	//implement in future as for now no functionality needs to customize this
-	CreateSwapchain();
+	CreateVulkanQueues();
+
+	CreateVulkanLogicalDevice();
+
+	nihil::SwapchainConfigCreateInfo swapchainConfigCreateInfo = {};
+	swapchainConfigCreateInfo.preferredBuffering = BufferingMode::eTriple;
+	swapchainConfigCreateInfo.windowWidth = *app->get->width;
+	swapchainConfigCreateInfo.windowHeight = *app->get->height;
+
+	std::cout << *app->get->width << *app->get->height << std::endl;
+
+	nihil::SwapchainConfiguration swapchainConfig = CreateSwapchainConfiguration(swapchainConfigCreateInfo);
+
+	CreateSwapchain(swapchainConfig);
+
 	CreateImageViews();
 
 	finishPrimarySetup();

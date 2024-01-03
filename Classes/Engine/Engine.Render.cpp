@@ -5,13 +5,36 @@
 
 #include "VertexBuffer/VertexBuffer.hpp"
 
+using namespace nihil;
+
+double lastTime = 0.0;
+uint64_t frameCount = 0;
+
+uint16_t calculateFPS(GLFWwindow* window, Engine* engine) {
+	double currentTime = glfwGetTime();
+	double delta = currentTime - lastTime;
+	frameCount++;
+
+	if (delta >= 1.0) {
+		double fps = static_cast<double>(frameCount) / delta;
+		frameCount = 0;
+		lastTime = currentTime;
+
+		// Update window title with FPS value
+		std::string title = "FPS: " + std::to_string(fps);
+		glfwSetWindowTitle(window, title.c_str());
+
+		return fps;
+	}
+	return (uint16_t)engine->FPS;
+}
+
 void Engine::Draw(Scene* scene)
 {
-	logicalDevice.waitForFences(1, &bundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
-	auto start = std::chrono::high_resolution_clock::now();
+	logicalDevice.waitForFences(1, &swapchainBundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
 	uint32_t imageIndex{ 0 };
 	try {
-		vk::ResultValue acquire = logicalDevice.acquireNextImageKHR(bundle.swapchain, UINT64_MAX, bundle.frames[frameNumber].imageAvailable, nullptr);
+		vk::ResultValue acquire = logicalDevice.acquireNextImageKHR(swapchainBundle.swapchain, UINT64_MAX, swapchainBundle.frames[frameNumber].imageAvailable, nullptr);
 		imageIndex = acquire.value;
 	}
 	catch (vk::OutOfDateKHRError err) {
@@ -19,27 +42,27 @@ void Engine::Draw(Scene* scene)
 		return;
 	}
 
-	vk::CommandBuffer commandBuffer = bundle.frames[imageIndex].commandBuffer;
+	vk::CommandBuffer commandBuffer = swapchainBundle.frames[imageIndex].commandBuffer;
 
 	commandBuffer.reset();
 
 	recordDrawCommands(commandBuffer, imageIndex, scene);
 
 	vk::SubmitInfo submitinfo = {};
-	vk::Semaphore waitSemaphores[] = { bundle.frames[frameNumber].imageAvailable };
+	vk::Semaphore waitSemaphores[] = { swapchainBundle.frames[frameNumber].imageAvailable };
 	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
 	submitinfo.waitSemaphoreCount = 1;
 	submitinfo.pWaitSemaphores = waitSemaphores;
 	submitinfo.pWaitDstStageMask = waitStages;
 	submitinfo.commandBufferCount = 1;
-	submitinfo.pCommandBuffers = &bundle.frames[frameNumber].commandBuffer;
-	vk::Semaphore signalSemaphores[] = { bundle.frames[frameNumber].renderFinished };
+	submitinfo.pCommandBuffers = &swapchainBundle.frames[frameNumber].commandBuffer;
+	vk::Semaphore signalSemaphores[] = { swapchainBundle.frames[frameNumber].renderFinished };
 	submitinfo.signalSemaphoreCount = 1;
 	submitinfo.pSignalSemaphores = signalSemaphores;
 
-	logicalDevice.resetFences(1, &bundle.frames[frameNumber].inFlightFence);
+	logicalDevice.resetFences(1, &swapchainBundle.frames[frameNumber].inFlightFence);
 	try {
-		graphicsQueue.submit(submitinfo, bundle.frames[frameNumber].inFlightFence);
+		graphicsQueue.submit(submitinfo, swapchainBundle.frames[frameNumber].inFlightFence);
 	}
 	catch (vk::SystemError err) {
 		std::cerr << "Failed to draw command buffer" << std::endl;
@@ -48,7 +71,7 @@ void Engine::Draw(Scene* scene)
 	vk::PresentInfoKHR presentInfo = {};
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = signalSemaphores;
-	vk::SwapchainKHR swapchains[] = { bundle.swapchain };
+	vk::SwapchainKHR swapchains[] = { swapchainBundle.swapchain };
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapchains;
 	presentInfo.pImageIndices = &imageIndex;
@@ -66,12 +89,9 @@ void Engine::Draw(Scene* scene)
 		return;
 	}
 
-	auto endTime = std::chrono::high_resolution_clock::now();
-	std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - start);
-	std::chrono::milliseconds sleepTime = period - elapsed;
-	if (sleepTime > std::chrono::milliseconds(0)) std::this_thread::sleep_for(sleepTime);
-
 	frameNumber = (frameNumber + 1) % maxFramesInFlight;
+
+	//uint16_t currentFPS = calculateFPS(const_cast<GLFWwindow*>(app->get->window), this);
 }
 
 void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, Scene* scene)
@@ -87,10 +107,10 @@ void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t image
 
 	vk::RenderPassBeginInfo passInfo = {};
 	passInfo.renderPass = renderPass;
-	passInfo.framebuffer = bundle.frames[imageIndex].frameBuffer;
+	passInfo.framebuffer = swapchainBundle.frames[imageIndex].frameBuffer;
 	passInfo.renderArea.offset.x = 0;
 	passInfo.renderArea.offset.y = 0;
-	passInfo.renderArea.extent = extent;
+	passInfo.renderArea.extent = swapchainBundle.extent;
 	vk::ClearValue clearColor = { std::array<float, 4>{0, 0, 0, 1} };
 	passInfo.clearValueCount = 1;
 	passInfo.pClearValues = &clearColor;
@@ -156,7 +176,7 @@ void Engine::createSyncObjects()
 	semaphoreCreateInfo.flags = vk::SemaphoreCreateFlags();
 
 	//do it for each frame
-	for (SwapChainFrame& frame : bundle.frames)
+	for (SwapChainFrame& frame : swapchainBundle.frames)
 	{
 		try {
 			frame.imageAvailable = logicalDevice.createSemaphore(semaphoreCreateInfo);
@@ -196,10 +216,10 @@ void Engine::createFrameCommandBuffers()
 	commandBufferAllocInfo.level = vk::CommandBufferLevel::ePrimary;
 	commandBufferAllocInfo.commandBufferCount = 1;
 
-	for (int i = 0; i < bundle.frames.size(); i++)
+	for (int i = 0; i < swapchainBundle.frames.size(); i++)
 	{
 		try {
-			bundle.frames[i].commandBuffer = logicalDevice.allocateCommandBuffers(commandBufferAllocInfo)[0];
+			swapchainBundle.frames[i].commandBuffer = logicalDevice.allocateCommandBuffers(commandBufferAllocInfo)[0];
 		}
 		catch (vk::SystemError err) {
 			std::cerr << "Error whilst allocating command buffers" << std::endl;
@@ -228,22 +248,22 @@ void Engine::createMainCommandBuffer()
 void Engine::createFrameBuffers()
 {
 	//create frame buffer
-	for (int i = 0; i < bundle.frames.size(); i++)
+	for (int i = 0; i < swapchainBundle.frames.size(); i++)
 	{
 		std::vector<vk::ImageView> attachments = {
-			bundle.frames[i].view
+			swapchainBundle.frames[i].view
 		};
 		vk::FramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.flags = vk::FramebufferCreateFlags();
 		framebufferInfo.renderPass = renderPass;
 		framebufferInfo.attachmentCount = attachments.size();
-		framebufferInfo.width = extent.width;
-		framebufferInfo.height = extent.height;
+		framebufferInfo.width = swapchainBundle.extent.width;
+		framebufferInfo.height = swapchainBundle.extent.height;
 		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.layers = 1;
 
 		try {
-			bundle.frames[i].frameBuffer = logicalDevice.createFramebuffer(framebufferInfo);
+			swapchainBundle.frames[i].frameBuffer = logicalDevice.createFramebuffer(framebufferInfo);
 		}
 		catch (vk::SystemError) {
 			std::cerr << "Error whilst creating a framebuffer" << std::endl;
