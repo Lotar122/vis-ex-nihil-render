@@ -11,6 +11,6 @@ layout(push_constant) uniform constants {
 } ObjectData;
 void main()
 {
-	gl_Position = ObjectData.model * vec4(vertexPosition, 1.0);
+	gl_Position = vec4(vertexPosition, 1.0);
 	colorInt = vec4(colorInput, 1.0);
 }

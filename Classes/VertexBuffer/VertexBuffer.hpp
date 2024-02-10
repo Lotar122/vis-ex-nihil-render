@@ -15,9 +15,10 @@ namespace nihil {
 			engine = _engine;
 
 			Data = {
-				0.0f, -0.05f, 0.0f, 0.0f, 0.0f, 1.0f,
-				0.05f, 0.05f, 0.0f, 0.0f, 0.0f, 1.0f,
-				-0.05f, 0.05f, 0.0f, 0.0f, 0.0f, 1.0f
+				//POS                 COLOR
+				0.0f, -0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
+				0.5f, 0.5f, 0.0f,     0.0f, 1.0f, 0.0f,
+				-0.5f, 0.5f, 0.0f,    0.0f, 0.0f, 1.0f
 			};
 
 			buffer = Memory::CreateBuffer(sizeof(float) * Data.size(), vk::BufferUsageFlagBits::eVertexBuffer, engine);
@@ -29,6 +30,18 @@ namespace nihil {
 		{
 			engine->get->logicalDevice->destroyBuffer(buffer.buffer);
 			engine->get->logicalDevice->freeMemory(buffer.memory);
+		}
+		void refresh(std::vector<float> _Data)
+		{
+			Data = _Data;
+			// Map the vertex buffer memory
+			void* mappedData = engine->get->logicalDevice->mapMemory(buffer.memory, 0, sizeof(float) * _Data.size());
+
+			// Copy the new data directly into the mapped memory
+			std::memcpy(mappedData, _Data.data(), static_cast<std::size_t>(_Data.size()));
+
+			// Unmap the vertex buffer memory
+			engine->get->logicalDevice->unmapMemory(buffer.memory);
 		}
 	};
 }

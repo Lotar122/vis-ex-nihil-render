@@ -33,6 +33,10 @@ void Engine::Draw(Scene* scene)
 {
 	logicalDevice.waitForFences(1, &swapchainBundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
 	uint32_t imageIndex{ 0 };
+
+	vertexBuffer->Data[1] += 0.0001f;
+	vertexBuffer->refresh(vertexBuffer->Data);
+
 	try {
 		vk::ResultValue acquire = logicalDevice.acquireNextImageKHR(swapchainBundle.swapchain, UINT64_MAX, swapchainBundle.frames[frameNumber].imageAvailable, nullptr);
 		imageIndex = acquire.value;
