@@ -65,9 +65,9 @@ int main()
 	appArgs.appVersion = appVersion;
 	appArgs.vulkanVersion = vulkanVersion;
 	appArgs.engine = engine;
-	appArgs.name = "HUJ";
-	appArgs.height = 1080;
-	appArgs.width = 1080;
+	appArgs.name = "vis ex nihil";
+	appArgs.height = 1000;
+	appArgs.width = 1000;
 
 	nihil::App* app = new nihil::App(appArgs);
 

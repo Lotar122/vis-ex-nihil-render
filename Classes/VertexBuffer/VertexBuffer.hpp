@@ -21,12 +21,12 @@ namespace nihil {
 			engine = _engine;
 
 			Data = {
-				//POS                                                   COLOR
+				//POS                                                                                                                                             COLOR
 				nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    1.0f, 0.0f, 0.0f,
 				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,     0.0f, 1.0f, 0.0f,
-				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    0.0f, 0.0f, 1.0f,
+				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,      0.0f, 0.0f, 1.0f,
 
-				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    0.0f, 0.0f, 1.0f,
+				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,      0.0f, 0.0f, 1.0f,
 				nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,     1.0f, 1.0f, 1.0f,
 				nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    1.0f, 0.0f, 0.0f
 			};
