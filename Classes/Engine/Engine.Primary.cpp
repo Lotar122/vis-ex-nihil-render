@@ -230,8 +230,6 @@ void nihil::Engine::CreateSwapchain(SwapchainConfiguration createInfo)
 
 	swapchainBundle.format = createInfo.imageFormat;
 	swapchainBundle.extent = createInfo.imageExtent;
-
-	std::cout << createInfo.imageExtent.width << createInfo.imageExtent.height << std::endl;
 }
 
 void nihil::Engine::CreateImageViews()

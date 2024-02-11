@@ -34,8 +34,9 @@ void Engine::Draw(Scene* scene)
 	logicalDevice.waitForFences(1, &swapchainBundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
 	uint32_t imageIndex{ 0 };
 
-	vertexBuffer->Data[1] += 0.0001f;
-	vertexBuffer->refresh(vertexBuffer->Data);
+	//vertexBuffer->Data[1] += nstd::USC::NDC_u(0.1, app->screenRatio, nstd::WidthHeightEnum::Height);
+
+	//vertexBuffer->refresh(vertexBuffer->Data);
 
 	try {
 		vk::ResultValue acquire = logicalDevice.acquireNextImageKHR(swapchainBundle.swapchain, UINT64_MAX, swapchainBundle.frames[frameNumber].imageAvailable, nullptr);
@@ -136,7 +137,7 @@ void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t image
 		srand((unsigned) std::time(NULL));
 		data.time = std::rand();
 		commandBuffer.pushConstants(layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectData), &data);
-		commandBuffer.draw(3, 1, 0, 0);
+		commandBuffer.draw(vertexBuffer->Data.size(), 1, 0, 0);
 	}
 	commandBuffer.endRenderPass();
 	try {

@@ -145,8 +145,6 @@ void Engine::SetupDeafult()
 	swapchainConfigCreateInfo.windowWidth = *app->get->width;
 	swapchainConfigCreateInfo.windowHeight = *app->get->height;
 
-	std::cout << *app->get->width << *app->get->height << std::endl;
-
 	nihil::SwapchainConfiguration swapchainConfig = CreateSwapchainConfiguration(swapchainConfigCreateInfo);
 
 	CreateSwapchain(swapchainConfig);
@@ -163,7 +161,7 @@ void Engine::SetupDeafult()
 
 	finishSetup();
 
-	vertexBuffer = new VertexBuffer(this);
+	vertexBuffer = new VertexBuffer(this, &app->screenRatio);
 }
 
 void Engine::setApp(App* _app)

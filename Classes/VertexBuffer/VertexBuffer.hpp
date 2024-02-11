@@ -3,6 +3,10 @@
 #include "Classes/Memory/Memory.hpp"
 #include <vulkan/vulkan.hpp>
 
+#include <vector>
+
+#include "nihil-standard/nstd.hpp"
+
 namespace nihil {
 	class VertexBuffer
 	{
@@ -10,21 +14,31 @@ namespace nihil {
 		Engine* engine;
 		std::vector<float> Data;
 		Buffer buffer;
-		VertexBuffer(Engine* _engine)
+		nstd::ScreenRatio* screenRatio;
+		VertexBuffer(Engine* _engine, nstd::ScreenRatio* ratio)
 		{
+			screenRatio = ratio;
 			engine = _engine;
 
 			Data = {
-				//POS                 COLOR
-				0.0f, -0.5f, 0.0f,    1.0f, 0.0f, 0.0f,
-				0.5f, 0.5f, 0.0f,     0.0f, 1.0f, 0.0f,
-				-0.5f, 0.5f, 0.0f,    0.0f, 0.0f, 1.0f
+				//POS                                                   COLOR
+				nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    1.0f, 0.0f, 0.0f,
+				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,     0.0f, 1.0f, 0.0f,
+				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    0.0f, 0.0f, 1.0f,
+
+				nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    0.0f, 0.0f, 1.0f,
+				nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,     1.0f, 1.0f, 1.0f,
+				nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Width), nstd::USC::NDC_u(-500, *screenRatio, nstd::WidthHeightEnum::Height), 0.0f,    1.0f, 0.0f, 0.0f
 			};
 
 			buffer = Memory::CreateBuffer(sizeof(float) * Data.size(), vk::BufferUsageFlagBits::eVertexBuffer, engine);
 			void* memoryLocation = engine->get->logicalDevice->mapMemory(buffer.memory, 0, sizeof(float) * Data.size());
 			memcpy(memoryLocation, Data.data(), sizeof(float) * Data.size());
 			engine->get->logicalDevice->unmapMemory(buffer.memory);
+
+			for (float f : Data) {
+				std::cout << f << std::endl;
+			}
 		}
 		~VertexBuffer()
 		{

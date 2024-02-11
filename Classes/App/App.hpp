@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "Classes/Scene/Scene.hpp"
 #include "Classes/Engine/Engine.Structs.InData.hpp"
+#include "nihil-standard/nstd.hpp"
 
 namespace nihil {
 	class Engine;
@@ -66,7 +67,16 @@ namespace nihil {
 
 		bool shouldClose = false;
 
+		int gcd(int a, int b) {
+			while (b != 0) {
+				int temp = b;
+				b = a % b;
+				a = temp;
+			}
+			return a;
+		}
 	public:
+		nstd::ScreenRatio screenRatio;
 		Proxy* get;
 		App(AppCreationArgs args);
 		~App();

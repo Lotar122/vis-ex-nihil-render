@@ -10,7 +10,7 @@ namespace nihil {
 	class Memory
 	{
 	public:
-		static Buffer CreateBuffer(uint32_t size, vk::BufferUsageFlags usage, Engine* engine)
+		static Buffer& CreateBuffer(uint32_t size, vk::BufferUsageFlags usage, Engine* engine)
 		{
 			vk::BufferCreateInfo createInfo = {};
 			createInfo.flags = vk::BufferCreateFlags();

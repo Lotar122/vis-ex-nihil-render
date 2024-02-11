@@ -29,6 +29,16 @@ App::App(AppCreationArgs args)
 
 	window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
 
+	// Calculate the greatest common divisor
+	int divisor = gcd(width, height);
+
+	// Calculate simplified aspect ratio
+	int aspectRatioWidth = width / divisor;
+	int aspectRatioHeight = height / divisor;
+
+	screenRatio.width = (uint8_t)aspectRatioWidth;
+	screenRatio.height = (uint8_t)aspectRatioHeight;
+
 	get->window = window;
 
 	engine->setApp(this);
