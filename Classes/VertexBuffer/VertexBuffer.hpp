@@ -35,10 +35,6 @@ namespace nihil {
 			void* memoryLocation = engine->get->logicalDevice->mapMemory(buffer.memory, 0, sizeof(float) * Data.size());
 			memcpy(memoryLocation, Data.data(), sizeof(float) * Data.size());
 			engine->get->logicalDevice->unmapMemory(buffer.memory);
-
-			for (float f : Data) {
-				std::cout << f << std::endl;
-			}
 		}
 		~VertexBuffer()
 		{

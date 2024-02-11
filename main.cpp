@@ -67,7 +67,7 @@ int main()
 	appArgs.engine = engine;
 	appArgs.name = "HUJ";
 	appArgs.height = 1080;
-	appArgs.width = 1920;
+	appArgs.width = 1080;
 
 	nihil::App* app = new nihil::App(appArgs);
 
