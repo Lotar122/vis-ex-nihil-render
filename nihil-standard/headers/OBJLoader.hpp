@@ -178,14 +178,18 @@ namespace nihil {
                     faces[j] = f;
                 }
 
+                uint8_t x = 1;
+
                 for (int i = 0; i < vertices.size(); i++)
                 {
+                    x++;
                     verticesRender.push_back(vertices[i].x);
                     verticesRender.push_back(vertices[i].y);
                     verticesRender.push_back(vertices[i].z);
-                    verticesRender.push_back(0.0f);
-                    verticesRender.push_back(1.0f);
-                    verticesRender.push_back(0.0f);
+                    verticesRender.push_back(x * 0.1f);
+                    verticesRender.push_back(x * 0.2f);
+                    verticesRender.push_back(x * 0.3f);
+                    if (x >= 3) x = 1;
                 }
                 for (int i = 0; i < faces.size(); i++)
                 {
