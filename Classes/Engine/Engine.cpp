@@ -1,5 +1,6 @@
 #include "Engine.hpp"
 #include "VertexBuffer/VertexBuffer.hpp"
+#include "IndexBuffer/IndexBuffer.hpp"
 
 #ifdef _DEBUG
 #define DEBUGFLAG true
@@ -79,6 +80,9 @@ void Engine::destroySwapchain()
 		logicalDevice.destroyFence(frame.inFlightFence);
 		logicalDevice.destroyImageView(frame.view);
 		logicalDevice.destroyFramebuffer(frame.frameBuffer);
+		logicalDevice.destroyImage(frame.depthBuffer);
+		logicalDevice.destroyImageView(frame.depthBufferView);
+		logicalDevice.freeMemory(frame.depthBufferMemory);
 	}
 	logicalDevice.destroySwapchainKHR(swapchainBundle.swapchain);
 }
@@ -107,6 +111,7 @@ void Engine::RecreateSwapchain()
 	swapchainConfiguration = CreateSwapchainConfiguration(configInfo);
 	CreateSwapchain(swapchainConfiguration);
 	CreateImageViews();
+	createDepthBuffers();
 	createFrameBuffers();
 	createSyncObjects();
 	createFrameCommandBuffers();
@@ -151,6 +156,9 @@ void Engine::SetupDeafult()
 
 	CreateImageViews();
 
+	swapchainBundle.depthFormat = vk::Format::eD32Sfloat;
+	createDepthBuffers();
+
 	finishPrimarySetup();
 
 	//customize shaders in future with the component system
@@ -162,6 +170,13 @@ void Engine::SetupDeafult()
 	finishSetup();
 
 	vertexBuffer = new VertexBuffer(this, &app->screenRatio);
+	indexBuffer = new IndexBuffer(this);
+
+	std::string path = "./car.obj";
+	objobject.Load(path, app->screenRatio);
+
+	vertexBuffer->refresh(objobject.verticesRender);
+	indexBuffer->refresh(objobject.indicesRender);
 }
 
 void Engine::setApp(App* _app)

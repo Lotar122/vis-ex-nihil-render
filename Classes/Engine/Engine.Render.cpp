@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "VertexBuffer/VertexBuffer.hpp"
+#include "IndexBuffer/IndexBuffer.hpp"
 
 using namespace nihil;
 
@@ -98,7 +99,7 @@ void Engine::Draw(Scene* scene)
 
 	//uint16_t currentFPS = calculateFPS(const_cast<GLFWwindow*>(app->get->window), this);
 }
-
+uint64_t count;
 void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, Scene* scene)
 {
 	vk::CommandBufferBeginInfo beginInfo = {};
@@ -116,9 +117,11 @@ void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t image
 	passInfo.renderArea.offset.x = 0;
 	passInfo.renderArea.offset.y = 0;
 	passInfo.renderArea.extent = swapchainBundle.extent;
-	vk::ClearValue clearColor = { std::array<float, 4>{0, 0, 0, 1} };
-	passInfo.clearValueCount = 1;
-	passInfo.pClearValues = &clearColor;
+	vk::ClearValue clearValues[2];
+	clearValues[0].color = {0.0f,0.0f,0.0f,1.0f};
+	clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0.0f);
+	passInfo.clearValueCount = 2;
+	passInfo.pClearValues = clearValues;
 
 	commandBuffer.beginRenderPass(passInfo, vk::SubpassContents::eInline);
 	commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
@@ -128,17 +131,25 @@ void Engine::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t image
 	vk::DeviceSize offsets[] = {
 		0
 	};
+
 	commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets);
+	commandBuffer.bindIndexBuffer(indexBuffer->buffer.buffer, 0, vk::IndexType::eUint32);
+	count++;
 	for (glm::vec3 position : scene->triangleVertices)
 	{
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), position);
 		ObjectData data = {};
-		data.model = model;
-		srand((unsigned) std::time(NULL));
-		data.time = std::rand();
+		
+		//data.proj = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		data.proj = glm::perspectiveRH(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
+		data.trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -5.0f));
+		data.trans = glm::rotate(data.trans, glm::radians(0.1f * count), glm::vec3(0.0f, 1.0f, 0.0f));
+		data.trans = glm::rotate(data.trans, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		data.trans = glm::scale(data.trans, glm::vec3(0.05f, 0.05f, 0.05f));
+		data.pre = data.proj * data.trans;
 		commandBuffer.pushConstants(layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectData), &data);
-		commandBuffer.draw(vertexBuffer->Data.size(), 1, 0, 0);
 	}
+	commandBuffer.drawIndexed(static_cast<uint32_t>(indexBuffer->Data.size()), 1, 0, 0, 0);
 	commandBuffer.endRenderPass();
 	try {
 		commandBuffer.end();
@@ -154,6 +165,7 @@ void Engine::RenderSetup()
 	createCommandPools();
 	createFrameCommandBuffers();
 	createMainCommandBuffer();
+	createDepthBuffers();
 	createFrameBuffers();
 	createSyncObjects();
 }
@@ -256,7 +268,8 @@ void Engine::createFrameBuffers()
 	for (int i = 0; i < swapchainBundle.frames.size(); i++)
 	{
 		std::vector<vk::ImageView> attachments = {
-			swapchainBundle.frames[i].view
+			swapchainBundle.frames[i].view,
+			swapchainBundle.frames[i].depthBufferView
 		};
 		vk::FramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.flags = vk::FramebufferCreateFlags();
@@ -277,3 +290,66 @@ void Engine::createFrameBuffers()
 	}
 }
 
+void Engine::createDepthBuffers()
+{
+	for (SwapChainFrame& frame : swapchainBundle.frames)
+	{
+		frame.depthFormat = swapchainBundle.depthFormat;
+		
+		// Create depth image
+		vk::ImageCreateInfo depthImageCreateInfo(
+			vk::ImageCreateFlags(),                      // flags
+			vk::ImageType::e2D,                          // imageType
+			frame.depthFormat,                                 // format
+			vk::Extent3D(swapchainBundle.extent.width, swapchainBundle.extent.height, 1),  // extent
+			1,                                           // mipLevels
+			1,                                           // arrayLayers
+			vk::SampleCountFlagBits::e1,                 // samples
+			vk::ImageTiling::eOptimal,                   // tiling
+			vk::ImageUsageFlagBits::eDepthStencilAttachment,  // usage
+			vk::SharingMode::eExclusive,                 // sharingMode
+			0,                                           // queueFamilyIndexCount
+			nullptr,                                     // pQueueFamilyIndices
+			vk::ImageLayout::eUndefined                  // initialLayout
+		);
+
+		frame.depthBuffer = logicalDevice.createImage(depthImageCreateInfo);
+
+		// Allocate memory for the depth image
+		vk::MemoryRequirements memRequirements = logicalDevice.getImageMemoryRequirements(frame.depthBuffer);
+		vk::MemoryAllocateInfo allocInfo(memRequirements.size, findMemoryType(memRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal));
+		frame.depthBufferMemory = logicalDevice.allocateMemory(allocInfo);
+		logicalDevice.bindImageMemory(frame.depthBuffer, frame.depthBufferMemory, 0);
+
+		// Create image view for depth image
+		vk::ImageViewCreateInfo depthImageViewCreateInfo(
+			vk::ImageViewCreateFlags(),       // flags
+			frame.depthBuffer,                 // image
+			vk::ImageViewType::e2D,           // viewType
+			frame.depthFormat,                       // format
+			vk::ComponentMapping(),            // components
+			vk::ImageSubresourceRange(
+				vk::ImageAspectFlagBits::eDepth,  // aspectMask
+				0,                                 // baseMipLevel
+				1,                                 // levelCount
+				0,                                 // baseArrayLayer
+				1                                  // layerCount
+			)
+		);
+
+		frame.depthBufferView = logicalDevice.createImageView(depthImageViewCreateInfo);
+	}
+}
+
+// Helper function to find memory type
+uint32_t Engine::findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
+	vk::PhysicalDeviceMemoryProperties memProperties = device.getMemoryProperties();
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;
+		}
+	}
+
+	throw std::runtime_error("Failed to find suitable memory type!");
+}

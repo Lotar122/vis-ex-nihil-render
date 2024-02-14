@@ -73,6 +73,12 @@ namespace nihil {
 		vk::ImageView view;
 		vk::Framebuffer frameBuffer;
 		vk::CommandBuffer commandBuffer;
+		vk::Image depthBuffer;
+		vk::DeviceMemory depthBufferMemory;
+		vk::ImageView depthBufferView;
+		vk::Format depthFormat;
+		uint16_t width;
+		uint16_t height;
 
 		vk::Semaphore imageAvailable, renderFinished;
 		vk::Fence inFlightFence;
@@ -81,6 +87,7 @@ namespace nihil {
 		vk::SwapchainKHR swapchain;
 		std::vector<SwapChainFrame> frames;
 		vk::Format format;
+		vk::Format depthFormat;
 		vk::Extent2D extent;
 	};
 }

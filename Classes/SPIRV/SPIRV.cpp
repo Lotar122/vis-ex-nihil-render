@@ -2,7 +2,7 @@
 
 using namespace nihil;
 
-std::vector<char> SPIRV::LoadFile(std::string filepath)
+std::vector<char> SPIRV::LoadSPVFile(std::string filepath)
 {
 	std::ifstream file{ filepath, std::ios::ate | std::ios::binary };
 	if (!file.is_open())

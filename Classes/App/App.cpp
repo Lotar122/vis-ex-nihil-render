@@ -30,16 +30,25 @@ App::App(AppCreationArgs args)
 	window = glfwCreateWindow(width, height, name.c_str(), NULL, NULL);
 
 	// Calculate the greatest common divisor
-	int divisor = gcd(width, height);
+	//int divisor = gcd(width, height);
+	int divisor;
+	if (height > width) {
+		divisor = height;
+	}
+	else {
+		divisor = width;
+	}
 
 	// Calculate simplified aspect ratio
-	int aspectRatioWidth = width / divisor;
-	int aspectRatioHeight = height / divisor;
+	float aspectRatioWidth = (float)width / (float)divisor;
+	float aspectRatioHeight = (float)height / (float)divisor;
 
-	screenRatio.width = (uint8_t)aspectRatioWidth;
-	screenRatio.height = (uint8_t)aspectRatioHeight;
+	screenRatio.width = aspectRatioWidth;
+	screenRatio.height = aspectRatioHeight;
 
 	get->window = window;
+
+	std::cout << screenRatio.width << " : " << screenRatio.height << std::endl;
 
 	engine->setApp(this);
 }

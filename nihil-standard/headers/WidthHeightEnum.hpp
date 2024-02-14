@@ -6,7 +6,8 @@ namespace nihil {
 		*/
 		enum class WidthHeightEnum {
 			Width,
-			Height
+			Height,
+			Depth
 		};
 	}
 }

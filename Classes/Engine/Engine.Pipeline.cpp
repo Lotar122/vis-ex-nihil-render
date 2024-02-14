@@ -5,7 +5,7 @@ using namespace nihil;
 void Engine::CreateShaderModule(std::string filepath, vk::Device device, vk::ShaderModule** ppShaderModule)
 {
 	std::cout << YELLOW << "[Setup]" << MAGENTA << "->" << YELLOW << "[Pipeline]" << MAGENTA << "->" << YELLOW << "[Create-Shader]" << RESET << "Creating shader module ";
-	std::vector<char> sourceCode = SPIRV::LoadFile(filepath);
+	std::vector<char> sourceCode = SPIRV::LoadSPVFile(filepath);
 	vk::ShaderModuleCreateInfo createInfo = {};
 	createInfo.flags = vk::ShaderModuleCreateFlags();
 	createInfo.codeSize = sourceCode.size();
@@ -109,6 +109,9 @@ void Engine::PipelineSetup()
 	rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
 	rasterizationInfo.frontFace = vk::FrontFace::eClockwise;
 	rasterizationInfo.depthBiasEnable = VK_FALSE;
+	//TEMP
+	rasterizationInfo.cullMode = vk::CullModeFlagBits::eNone;
+	//TEMP
 	pipelineInfo.pRasterizationState = &rasterizationInfo;
 
 	//Fragment shader
@@ -151,7 +154,12 @@ void Engine::PipelineSetup()
 	colorBlendingInfo.blendConstants[3] = 0.0f;
 	pipelineInfo.pColorBlendState = &colorBlendingInfo;
 
+	vk::PipelineDepthStencilStateCreateInfo depthInfo = {};
+	depthInfo.depthTestEnable = VK_TRUE;
+	depthInfo.depthWriteEnable = VK_TRUE;
+	depthInfo.depthCompareOp = vk::CompareOp::eLess;
 
+	pipelineInfo.pDepthStencilState = &depthInfo;
 
 	if (debug) std::cout << YELLOW << "[Setup]" << MAGENTA << "->" << YELLOW << "[Pipeline]" << RESET << "Creating a pipeline layout ";
 	//Create pipeline layout (move to a seperate function in future)
@@ -193,22 +201,53 @@ void Engine::PipelineSetup()
 	colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
 	colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
+	renderPassAttachments.push_back(colorAttachment);
+
+	swapchainBundle.depthFormat = vk::Format::eD32Sfloat;
+
+	vk::AttachmentDescription depthAttachment = {};
+	depthAttachment.format = swapchainBundle.depthFormat;
+	depthAttachment.samples = vk::SampleCountFlagBits::e1;
+	depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+	depthAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+	depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+	depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+	depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+	depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+	renderPassAttachments.push_back(depthAttachment);
+
 	vk::AttachmentReference colorAttachmentRef = {};
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+	vk::AttachmentReference depthAttachmentRef = {};
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
 	vk::SubpassDescription subpass = {};
 	subpass.flags = vk::SubpassDescriptionFlags();
 	subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
+	subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+	vk::SubpassDependency dependency(
+		VK_SUBPASS_EXTERNAL, 0,
+		vk::PipelineStageFlagBits::eEarlyFragmentTests,
+		vk::PipelineStageFlagBits::eLateFragmentTests,
+		vk::AccessFlagBits::eDepthStencilAttachmentWrite,
+		vk::AccessFlagBits::eDepthStencilAttachmentRead
+	);
 
 	vk::RenderPassCreateInfo renderpassInfo = {};
 	renderpassInfo.flags = vk::RenderPassCreateFlags();
-	renderpassInfo.attachmentCount = 1;
-	renderpassInfo.pAttachments = &colorAttachment;
+	renderpassInfo.attachmentCount = renderPassAttachments.size();
+	renderpassInfo.pAttachments = renderPassAttachments.data();
 	renderpassInfo.subpassCount = 1;
 	renderpassInfo.pSubpasses = &subpass;
+	renderpassInfo.dependencyCount = 1;
+	renderpassInfo.pDependencies = &dependency;
 
 	try {
 		renderPass = logicalDevice.createRenderPass(renderpassInfo);

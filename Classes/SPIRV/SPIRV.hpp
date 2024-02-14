@@ -10,7 +10,7 @@ namespace nihil {
 	{
 	public:
 		//loads the contents of a .spv file to a vector of chars
-		static std::vector<char> LoadFile(std::string filepath);
+		static std::vector<char> LoadSPVFile(std::string filepath);
 	};
 
 }

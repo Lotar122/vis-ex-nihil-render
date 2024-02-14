@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#define GLM_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_LEFT_HANDED
 
 #define STD_INCLUDES
 #include <iostream>
@@ -66,8 +68,8 @@ int main()
 	appArgs.vulkanVersion = vulkanVersion;
 	appArgs.engine = engine;
 	appArgs.name = "vis ex nihil";
-	appArgs.height = 1000;
-	appArgs.width = 1000;
+	appArgs.width = 1920;
+	appArgs.height = 1080;
 
 	nihil::App* app = new nihil::App(appArgs);
 
@@ -90,7 +92,7 @@ int main()
 
 	//error causing (intentional) 
 	//std::cout << *((int*)nullptr) << std::endl;
-	//i read from a nullptr to cause a read access vilation error
+	//i read from a nullptr to cause a read access violation error
 
 	return 0;
 }

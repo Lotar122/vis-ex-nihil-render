@@ -21,12 +21,16 @@
 
 #include "Classes/Scene/Scene.hpp"
 
+#define GLM_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_LEFT_HANDED
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace nihil {
 	//instead of #include "VertexBuffer/VertexBuffer.h"
 	class VertexBuffer;
+	class IndexBuffer;
 
 	class Engine
 	{
@@ -159,6 +163,8 @@ namespace nihil {
 		void createSyncObjects();
 		//create framebuffers
 		void createFrameBuffers();
+		//create depthbuffers
+		void createDepthBuffers();
 		//make frame commandbuffers
 		void createFrameCommandBuffers();
 		//make main commandbuffer
@@ -167,6 +173,8 @@ namespace nihil {
 		void createCommandPools();
 		//reacreate swapchain
 		void RecreateSwapchain();
+
+		uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
 		vk::Instance instance;
 		vk::PhysicalDevice device;
@@ -182,6 +190,8 @@ namespace nihil {
 		vk::SurfaceFormatKHR surfaceFormat;
 		vk::PresentModeKHR presentMode;
 		vk::SwapchainCreateInfoKHR swapCreateInfo;
+
+		std::vector<vk::AttachmentDescription> renderPassAttachments;
 
 		SwapChainBundle swapchainBundle{};
 
@@ -201,6 +211,9 @@ namespace nihil {
 
 		//VertexBuffer
 		VertexBuffer* vertexBuffer;
+		IndexBuffer* indexBuffer;
+
+		nstd::OBJ objobject;
 
 		SwapchainConfiguration swapchainConfiguration;
 

@@ -31,10 +31,13 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Classes\Memory\Memory.cpp" />
     <ClCompile Include="Classes\VertexBuffer\VertexBuffer.cpp" />
+    <ClCompile Include="nihil-standard\headers\FS.cpp" />
+    <ClCompile Include="nihil-standard\headers\SplitString.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\App\App.hpp" />
     <ClInclude Include="Classes\Engine\RenderStructs.hpp" />
+    <ClInclude Include="Classes\IndexBuffer\IndexBuffer.hpp" />
     <ClInclude Include="Classes\Pipeline\Pipeline.hpp" />
     <ClInclude Include="Classes\Scene\Scene.hpp" />
     <ClInclude Include="Classes\SPIRV\SPIRV.hpp" />

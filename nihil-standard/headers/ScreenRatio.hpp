@@ -9,11 +9,11 @@ namespace nihil {
 			/*
 			* @brief this holds the width in a width:height system
 			*/
-			uint8_t width;
+			float width;
 			/*
 			* @brief this holds the height in a width:height system
 			*/
-			uint8_t height;
+			float height;
 		};
 	}
 }
