@@ -168,6 +168,8 @@ nihil::SwapchainConfiguration nihil::Engine::CreateSwapchainConfiguration(Swapch
 	}
 	if (!set2) presentMode = vk::PresentModeKHR::eFifo;
 
+	presentMode = vk::PresentModeKHR::eFifo;
+
 	extent.setWidth(createInfo.windowWidth);
 	extent.setHeight(createInfo.windowHeight);
 	bool set3 = false;

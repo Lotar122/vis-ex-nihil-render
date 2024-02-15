@@ -73,10 +73,11 @@ int main()
 
 	nihil::App* app = new nihil::App(appArgs);
 
+	//moveede it to a thread so that the aplication stays responsive
 	//engine->Setup();
-	engine->Setup();
 
 	std::thread render = std::thread([app, engine](nihil::App* appP, nihil::Engine* engineP) {
+		engine->Setup();
 		while (!*(appP->get->shouldClose))
 		{
 			appP->get->engine->Draw(appP->get->scene);

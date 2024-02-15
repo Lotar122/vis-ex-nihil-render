@@ -2,6 +2,8 @@
 #include "VertexBuffer/VertexBuffer.hpp"
 #include "IndexBuffer/IndexBuffer.hpp"
 
+#include <filesystem>
+
 #ifdef _DEBUG
 #define DEBUGFLAG true
 #else
@@ -145,6 +147,26 @@ void Engine::SetupDeafult()
 
 	CreateVulkanLogicalDevice();
 
+	vertexBuffer = new VertexBuffer(this, &app->screenRatio);
+	indexBuffer = new IndexBuffer(this);
+
+	VertexBuffer* VB = vertexBuffer;
+	IndexBuffer* IB = indexBuffer;
+	nstd::OBJ* OBJP = &objobject;
+	App* appP = app;
+	std::thread loadingThread([VB, IB, OBJP, appP]() {
+		std::string path = "./car.obj";
+		if (std::filesystem::exists(path + ".indices.bin") || std::filesystem::exists(path + ".vertices.bin")) {
+			OBJP->loadFromBinaryLib(path);
+		}
+		else {
+			OBJP->Load(path, appP->screenRatio);
+		}
+
+		VB->refresh(OBJP->verticesRender);
+		IB->refresh(OBJP->indicesRender);
+	});
+
 	nihil::SwapchainConfigCreateInfo swapchainConfigCreateInfo = {};
 	swapchainConfigCreateInfo.preferredBuffering = BufferingMode::eTriple;
 	swapchainConfigCreateInfo.windowWidth = *app->get->width;
@@ -167,16 +189,9 @@ void Engine::SetupDeafult()
 	//make the Draw function interactable
 	RenderSetup();
 
+	loadingThread.join();
+
 	finishSetup();
-
-	vertexBuffer = new VertexBuffer(this, &app->screenRatio);
-	indexBuffer = new IndexBuffer(this);
-
-	std::string path = "./car.obj";
-	objobject.Load(path, app->screenRatio);
-
-	vertexBuffer->refresh(objobject.verticesRender);
-	indexBuffer->refresh(objobject.indicesRender);
 }
 
 void Engine::setApp(App* _app)
