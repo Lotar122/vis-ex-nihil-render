@@ -1,20 +1,23 @@
 #pragma once
-#include <iostream>
 #include <GLFW/glfw3.h>
 #include "Classes/Scene/Scene.hpp"
 #include "Classes/Engine/Engine.Structs.InData.hpp"
 #include "nihil-standard/nstd.hpp"
 
-namespace nihil {
-	class Engine;
+#include <iostream>
 
+namespace nihil::graphics {
+	class Engine;
+}
+
+namespace nihil {
 	struct AppCreationArgs {
 		uint16_t width;
 		uint16_t height;
 		std::string name;
-		Version vulkanVersion;
-		Version appVersion;
-		Engine* engine;
+		graphics::Version vulkanVersion;
+		graphics::Version appVersion;
+		graphics::Engine* engine;
 	};
 
 	class App
@@ -24,22 +27,22 @@ namespace nihil {
 			const uint16_t* width;
 			const uint16_t* height;
 			const std::string* name;
-			Engine* engine;
-			Scene* scene;
+			graphics::Engine* engine;
+			graphics::Scene* scene;
 			GLFWwindow* window;
 			const bool* shouldClose;
-			const Version* vulkanVersion;
-			const Version* appVersion;
+			const graphics::Version* vulkanVersion;
+			const graphics::Version* appVersion;
 			Proxy(
 				const uint16_t* width,
 				const uint16_t* height,
 				const std::string* name,
-				Engine* engine,
-				Scene* scene,
+				graphics::Engine* engine,
+				graphics::Scene* scene,
 				GLFWwindow* window,
 				const bool* shouldClose,
-				const Version* appVersion,
-				const Version* vulkanVersion
+				const graphics::Version* appVersion,
+				const graphics::Version* vulkanVersion
 			)
 			{
 				this->width = width;
@@ -57,13 +60,13 @@ namespace nihil {
 		uint16_t height;
 		std::string name;
 
-		Engine* engine;
-		Scene* scene;
+		graphics::Engine* engine;
+		graphics::Scene* scene;
 
 		GLFWwindow* window;
 
-		Version vulkanVersion;
-		Version appVersion;
+		graphics::Version vulkanVersion;
+		graphics::Version appVersion;
 
 		bool shouldClose = false;
 

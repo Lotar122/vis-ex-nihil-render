@@ -1,6 +1,6 @@
 #include "SPIRV.hpp"
 
-using namespace nihil;
+using namespace nihil::graphics;
 
 std::vector<char> SPIRV::LoadSPVFile(std::string filepath)
 {

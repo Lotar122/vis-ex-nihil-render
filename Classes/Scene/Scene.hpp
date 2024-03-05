@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace nihil {
+namespace nihil::graphics {
 	class Scene
 	{
 	public:

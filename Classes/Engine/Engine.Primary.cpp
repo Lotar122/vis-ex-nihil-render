@@ -1,6 +1,8 @@
 #include "Engine.hpp"
 
-void nihil::Engine::CreateVulkanInstance(VulkanInstanceCreateInfo createInfo) {
+using namespace nihil::graphics;
+
+void Engine::CreateVulkanInstance(VulkanInstanceCreateInfo createInfo) {
 	uint32_t version{ 0 };
 	version &= ~(0xFFFU);
 	version = VK_MAKE_API_VERSION(0, 1, 0, 0);
@@ -44,7 +46,7 @@ void nihil::Engine::CreateVulkanInstance(VulkanInstanceCreateInfo createInfo) {
 	}
 }
 
-void nihil::Engine::PickPhysicalDevice()
+void Engine::PickPhysicalDevice()
 {
 	bool foundDevice = false;
 	std::vector<vk::PhysicalDevice> availableDevices = instance.enumeratePhysicalDevices();
@@ -61,14 +63,14 @@ void nihil::Engine::PickPhysicalDevice()
 	}
 }
 
-void nihil::Engine::CreateVulkanSurface(GLFWwindow* window)
+void Engine::CreateVulkanSurface(GLFWwindow* window)
 {
 	VkSurfaceKHR c_surface;
 	glfwCreateWindowSurface(instance, window, NULL, &c_surface);
 	surface = c_surface;
 }
 
-void nihil::Engine::CreateVulkanQueues()
+void Engine::CreateVulkanQueues()
 {
 	std::vector<vk::QueueFamilyProperties> queueFamilies = device.getQueueFamilyProperties();
 	int iterator1 = 0;
@@ -101,7 +103,7 @@ void nihil::Engine::CreateVulkanQueues()
 	//finalize the queue creation in CreateVulkanLogicalDevice
 }
 
-void nihil::Engine::CreateVulkanLogicalDevice()
+void Engine::CreateVulkanLogicalDevice()
 {
 	float queuepriority = 1.0f;
 	std::vector<vk::DeviceQueueCreateInfo> queueCreateInfo;
@@ -132,132 +134,4 @@ void nihil::Engine::CreateVulkanLogicalDevice()
 
 	graphicsQueue = logicalDevice.getQueue(famind.graphics.value(), 0);
 	presentQueue = logicalDevice.getQueue(famind.present.value(), 0);
-}
-
-nihil::SwapchainConfiguration nihil::Engine::CreateSwapchainConfiguration(SwapchainConfigCreateInfo createInfo)
-{
-	SwapchainSupportDetails support;
-	vk::SurfaceFormatKHR surfaceFormat;
-	vk::PresentModeKHR presentMode;
-	vk::Extent2D extent;
-
-	support.capabilities = device.getSurfaceCapabilitiesKHR(surface);
-	support.formats = device.getSurfaceFormatsKHR(surface);
-	support.presentModes = device.getSurfacePresentModesKHR(surface);
-
-	bool set1 = false;
-	for (const vk::SurfaceFormatKHR& format : support.formats)
-	{
-		if (format == vk::Format::eB8G8R8A8Unorm && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
-			surfaceFormat = format;
-			set1 = true;
-			break;
-		}
-	}
-	if (!set1) { if (support.formats.size() > 0) { surfaceFormat = support.formats[0]; } else { std::abort(); } }
-
-	bool set2 = false;
-	for (const vk::PresentModeKHR& pForm : support.presentModes)
-	{
-		if (pForm == vk::PresentModeKHR::eMailbox)
-		{
-			presentMode = pForm;
-			set2 = true;
-			break;
-		}
-	}
-	if (!set2) presentMode = vk::PresentModeKHR::eFifo;
-
-	presentMode = vk::PresentModeKHR::eFifo;
-
-	extent.setWidth(createInfo.windowWidth);
-	extent.setHeight(createInfo.windowHeight);
-	bool set3 = false;
-	if (support.capabilities.currentExtent.width != UINT32_MAX) {
-		extent = support.capabilities.currentExtent;
-		set3 = true;
-	}
-	else {
-		extent.width = std::min(
-			(int)support.capabilities.maxImageExtent.width,
-			std::max((int)support.capabilities.minImageExtent.width, (int)createInfo.windowWidth)
-		);
-		extent.height = std::min(
-			(int)support.capabilities.maxImageExtent.height,
-			std::max((int)support.capabilities.minImageExtent.height, (int)createInfo.windowHeight)
-		);
-	}
-
-	uint8_t imageCount = std::min(
-		support.capabilities.maxImageCount,
-		support.capabilities.minImageCount + (int)createInfo.preferredBuffering
-	);
-	if (imageCount >= 3) {
-		imageCount = 3;
-	}
-
-	vk::SwapchainCreateInfoKHR swapchainCreateInfo = vk::SwapchainCreateInfoKHR(
-		vk::SwapchainCreateFlagsKHR(), surface, imageCount, surfaceFormat.format, surfaceFormat.colorSpace,
-		extent, 1, vk::ImageUsageFlagBits::eColorAttachment
-	);
-
-	if (famind.graphics.value() != famind.present.value())
-	{
-		swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-		swapchainCreateInfo.queueFamilyIndexCount = uniqueFAMIND.size();
-		swapchainCreateInfo.pQueueFamilyIndices = uniqueFAMIND.data();
-	}
-	else
-	{
-		swapchainCreateInfo.imageSharingMode = vk::SharingMode::eExclusive;
-	}
-	swapchainCreateInfo.preTransform = support.capabilities.currentTransform;
-	swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-	swapchainCreateInfo.presentMode = presentMode;
-	swapchainCreateInfo.clipped = VK_TRUE;
-	swapchainCreateInfo.oldSwapchain = vk::SwapchainKHR(nullptr);
-
-	return swapchainCreateInfo;
-}
-
-void nihil::Engine::CreateSwapchain(SwapchainConfiguration createInfo)
-{
-	swapchainConfiguration = createInfo;
-	try {
-		swapchainBundle.swapchain = logicalDevice.createSwapchainKHR(createInfo);
-	}
-	catch (vk::SystemError err) {
-		std::abort();
-	}
-
-	swapchainBundle.format = createInfo.imageFormat;
-	swapchainBundle.extent = createInfo.imageExtent;
-}
-
-void nihil::Engine::CreateImageViews()
-{
-	std::vector <vk::Image> images = logicalDevice.getSwapchainImagesKHR(swapchainBundle.swapchain);
-	swapchainBundle.frames.resize(images.size());
-	for (size_t i = 0; i < images.size(); i++)
-	{
-		vk::ImageViewCreateInfo imageViewCreateInfo = {};
-		imageViewCreateInfo.image = images[i];
-		imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
-		imageViewCreateInfo.components.r = vk::ComponentSwizzle::eIdentity;
-		imageViewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
-		imageViewCreateInfo.components.b = vk::ComponentSwizzle::eIdentity;
-		imageViewCreateInfo.components.a = vk::ComponentSwizzle::eIdentity;
-		imageViewCreateInfo.format = vk::Format::eB8G8R8A8Unorm;
-
-		imageViewCreateInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-		imageViewCreateInfo.subresourceRange.levelCount = 1;
-		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		imageViewCreateInfo.subresourceRange.layerCount = 1;
-
-		swapchainBundle.frames[i].image = images[i];
-		swapchainBundle.frames[i].view = logicalDevice.createImageView(imageViewCreateInfo);
-	}
-	maxFramesInFlight = swapchainBundle.frames.size();
-	frameNumber = 0;
 }

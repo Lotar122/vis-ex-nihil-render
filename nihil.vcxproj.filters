@@ -7,14 +7,16 @@
     <ClCompile Include="Classes\App\App.cpp" />
     <ClCompile Include="Classes\Engine\Engine.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Primary.cpp" />
-    <ClCompile Include="Classes\Engine\Engine.Pipeline.cpp" />
-    <ClCompile Include="Classes\Engine\Engine.Render.cpp" />
     <ClCompile Include="Classes\Scene\Scene.cpp" />
     <ClCompile Include="Classes\Memory\Memory.cpp" />
-    <ClCompile Include="Classes\VertexBuffer\VertexBuffer.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Structs.InData.hpp" />
     <ClCompile Include="nihil-standard\headers\FS.cpp" />
     <ClCompile Include="nihil-standard\headers\SplitString.cpp" />
+    <ClCompile Include="Classes\Renderer\Renderer.cpp" />
+    <ClCompile Include="Classes\Renderer\Renderer.Swapchain.cpp" />
+    <ClCompile Include="Classes\Renderer\Renderer.Pipeline.cpp" />
+    <ClCompile Include="Classes\Renderer\Renderer.Render.cpp" />
+    <ClCompile Include="Classes\Buffer\Buffer.tpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\App\App.hpp" />
@@ -24,9 +26,10 @@
     <ClInclude Include="Classes\SPIRV\SPIRV.hpp" />
     <ClInclude Include="Classes\Engine\Engine.hpp" />
     <ClInclude Include="Classes\Memory\Memory.hpp" />
-    <ClInclude Include="Classes\VertexBuffer\VertexBuffer.hpp" />
     <ClInclude Include="implicit_cast.hpp" />
-    <ClInclude Include="Classes\IndexBuffer\IndexBuffer.hpp" />
+    <ClInclude Include="nihil-standard\headers\ComponentSystem.hpp" />
+    <ClInclude Include="Classes\Renderer\Renderer.hpp" />
+    <ClInclude Include="Classes\Buffer\Buffer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />

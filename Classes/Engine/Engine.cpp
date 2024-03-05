@@ -1,6 +1,5 @@
 #include "Engine.hpp"
-#include "VertexBuffer/VertexBuffer.hpp"
-#include "IndexBuffer/IndexBuffer.hpp"
+#include "Classes/Buffer/Buffer.hpp"
 
 #include <filesystem>
 
@@ -10,7 +9,11 @@
 #define DEBUGFLAG false
 #endif
 
-using namespace nihil;
+using namespace nihil::graphics;
+
+void Engine::Draw() {
+	renderer->Draw();
+}
 
 Engine::Engine(bool _debug)
 {
@@ -21,12 +24,7 @@ Engine::Engine(bool _debug)
 	get = new Proxy(
 		&instance,
 		&device,
-		&logicalDevice,
-		&renderPass,
-		&pipeline,
-		&commandPool,
-		&commandBuffer,
-		&swapchainBundle
+		&logicalDevice
 	);
 }
 Engine::Engine()
@@ -38,28 +36,12 @@ Engine::Engine()
 	get = new Proxy(
 		&instance,
 		&device,
-		&logicalDevice,
-		&renderPass,
-		&pipeline,
-		&commandPool,
-		&commandBuffer,
-		&swapchainBundle
+		&logicalDevice
 	);
 }
 Engine::~Engine()
 {
 	logicalDevice.waitIdle();
-	logicalDevice.destroyShaderModule(*vertexShader);
-	logicalDevice.destroyShaderModule(*fragmentShader);
-	logicalDevice.destroyCommandPool(commandPool);
-
-	logicalDevice.destroyPipeline(pipeline);
-	logicalDevice.destroyPipelineLayout(layout);
-	logicalDevice.destroyRenderPass(renderPass);
-
-	destroySwapchain();
-
-	delete vertexBuffer;
 
 	logicalDevice.waitIdle();
 	logicalDevice.destroy();
@@ -71,63 +53,10 @@ Engine::~Engine()
 	//cause nvoglv64.dll crashes
 }
 
-void Engine::destroySwapchain()
-{
-	std::cout << std::endl << YELLOW << "[Setup]" << RESET << " Destroying the swapchain " << GREEN << "[###]" << std::endl;
-	logicalDevice.waitIdle();
-	for (const SwapChainFrame& frame : swapchainBundle.frames)
-	{
-		logicalDevice.destroySemaphore(frame.imageAvailable);
-		logicalDevice.destroySemaphore(frame.renderFinished);
-		logicalDevice.destroyFence(frame.inFlightFence);
-		logicalDevice.destroyImageView(frame.view);
-		logicalDevice.destroyFramebuffer(frame.frameBuffer);
-		logicalDevice.destroyImage(frame.depthBuffer);
-		logicalDevice.destroyImageView(frame.depthBufferView);
-		logicalDevice.freeMemory(frame.depthBufferMemory);
-	}
-	logicalDevice.destroySwapchainKHR(swapchainBundle.swapchain);
-}
-
-void Engine::RecreateSwapchain()
-{
-	int* pWidth = new int(0);
-	int* pHeight = new int(0);
-	glfwGetFramebufferSize(const_cast<GLFWwindow*>(app->get->window), pWidth, pHeight);
-	app->SetWidth(*pWidth);
-	app->SetHeight(*pHeight);
-	while (app->get->width == 0 || app->get->height == 0)
-	{
-		glfwGetFramebufferSize(const_cast<GLFWwindow*>(app->get->window), pWidth, pHeight);
-		app->SetWidth(*pWidth);
-		app->SetHeight(*pHeight);
-		glfwWaitEvents();
-	}
-	delete pWidth, pHeight;
-	logicalDevice.waitIdle();
-	destroySwapchain();
-	SwapchainConfigCreateInfo configInfo = {};
-	configInfo.preferredBuffering = BufferingMode::eTriple;
-	configInfo.windowHeight = *app->get->height;
-	configInfo.windowWidth = *app->get->width;
-	swapchainConfiguration = CreateSwapchainConfiguration(configInfo);
-	CreateSwapchain(swapchainConfiguration);
-	CreateImageViews();
-	createDepthBuffers();
-	createFrameBuffers();
-	createSyncObjects();
-	createFrameCommandBuffers();
-}
-
 void Engine::Setup()
 {
 	if (app == NULL) { std::cerr << "App is nullptr" << std::endl; std::abort(); }
-	SetupDeafult();
-}
-
-void Engine::SetupDeafult()
-{
-	if (app == NULL) { std::cerr << "App is nullptr" << std::endl; std::abort(); }
+	//SetupDeafult();
 
 	VulkanInstanceCreateInfo instanceInfo = {};
 	instanceInfo.appName = *app->get->name;
@@ -147,54 +76,33 @@ void Engine::SetupDeafult()
 
 	CreateVulkanLogicalDevice();
 
-	vertexBuffer = new VertexBuffer(this, &app->screenRatio);
-	indexBuffer = new IndexBuffer(this);
+	renderer = new Renderer(this);
 
-	VertexBuffer* VB = vertexBuffer;
-	IndexBuffer* IB = indexBuffer;
-	nstd::OBJ* OBJP = &objobject;
-	App* appP = app;
-	std::thread loadingThread([VB, IB, OBJP, appP]() {
-		std::string path = "./car.obj";
-		if (std::filesystem::exists(path + ".indices.bin") || std::filesystem::exists(path + ".vertices.bin")) {
-			OBJP->loadFromBinaryLib(path);
-		}
-		else {
-			OBJP->Load(path, appP->screenRatio);
-		}
-
-		VB->refresh(OBJP->verticesRender);
-		IB->refresh(OBJP->indicesRender);
-	});
-
-	nihil::SwapchainConfigCreateInfo swapchainConfigCreateInfo = {};
-	swapchainConfigCreateInfo.preferredBuffering = BufferingMode::eTriple;
-	swapchainConfigCreateInfo.windowWidth = *app->get->width;
-	swapchainConfigCreateInfo.windowHeight = *app->get->height;
-
-	nihil::SwapchainConfiguration swapchainConfig = CreateSwapchainConfiguration(swapchainConfigCreateInfo);
-
-	CreateSwapchain(swapchainConfig);
-
-	CreateImageViews();
-
-	swapchainBundle.depthFormat = vk::Format::eD32Sfloat;
-	createDepthBuffers();
-
-	finishPrimarySetup();
-
-	//customize shaders in future with the component system
-	PipelineSetup();
-
-	//make the Draw function interactable
-	RenderSetup();
-
-	loadingThread.join();
-
-	finishSetup();
+	//temporary
+	renderer->objobject = &objobject;
 }
 
 void Engine::setApp(App* _app)
 {
 	app = _app;
+}
+
+void Engine::writeindexBuffer(std::vector<uint32_t> data)
+{
+	renderer->indexBuffer->refresh(data);
+}
+
+void Engine::writeVertexBuffer(std::vector<float> data)
+{
+	renderer->vertexBuffer->refresh(data);
+}
+
+std::vector<uint32_t> Engine::readIndexBuffer()
+{
+	return renderer->indexBuffer->Data;
+}
+
+std::vector<float> Engine::readVertexBuffer()
+{
+	return renderer->vertexBuffer->Data;
 }

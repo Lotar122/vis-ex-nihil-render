@@ -6,9 +6,10 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
-namespace nihil {
+namespace nihil::graphics {
 	using SwapchainConfiguration = vk::SwapchainCreateInfoKHR;
 
+	//!!! move to nstd
 	struct Version {
 		uint32_t variant;
 		uint32_t major;

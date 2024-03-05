@@ -15,7 +15,8 @@
 #define CUSTOM_INCLUDES
 //#include "MaxwellsEngine/MaxwellsEngine.h"
 
-#include "App/App.hpp"
+#include "Classes/App/App.hpp"
+#include "Classes/Engine/Engine.hpp"
 
 //Installing GLFW is a nightmare
 //Installing GLFW is a nightmare
@@ -44,24 +45,13 @@
 
 int main()
 {
-	//MaxwellsEngine* engine = new MaxwellsEngine(true);
-	//engine->Setup();
-
-	//while (!engine->shouldClose)
-	//{
-	//	engine->WindowEventLoop();
-	//	engine->Draw();
-	//}
-
-	//delete engine;
-
-	nihil::Version vulkanVersion = {};
+	nihil::graphics::Version vulkanVersion = {};
 	vulkanVersion.make_version(0, 1, 0, 0);
 
-	nihil::Version appVersion = {};
+	nihil::graphics::Version appVersion = {};
 	appVersion.make_version(0, 1, 0, 0);
 
-	nihil::Engine* engine = new nihil::Engine(true);
+	nihil::graphics::Engine* engine = new nihil::graphics::Engine(true);
 
 	nihil::AppCreationArgs appArgs = {};
 	appArgs.appVersion = appVersion;
@@ -73,14 +63,14 @@ int main()
 
 	nihil::App* app = new nihil::App(appArgs);
 
-	//moveede it to a thread so that the aplication stays responsive
-	//engine->Setup();
-
-	std::thread render = std::thread([app, engine](nihil::App* appP, nihil::Engine* engineP) {
+	std::thread render = std::thread([app, engine](nihil::App* app, nihil::graphics::Engine* engine) {
 		engine->Setup();
-		while (!*(appP->get->shouldClose))
+		engine->objobject.Load("./resources/models/car.obj", nihil::nstd::LoadBinObj::DontCare, app->screenRatio);
+		engine->writeVertexBuffer(engine->objobject.verticesRender);
+		engine->writeindexBuffer(engine->objobject.indicesRender);
+		while (!*(app->get->shouldClose))
 		{
-			appP->get->engine->Draw(appP->get->scene);
+			engine->Draw();
 		}
 	}, app, engine);
 

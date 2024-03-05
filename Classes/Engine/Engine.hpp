@@ -11,6 +11,7 @@
 #include "implicit_cast.hpp"
 #include "Classes/SPIRV/SPIRV.hpp"
 
+//!!! Enable colors
 #define USE_COLORS
 #include "TerminalColors.hpp"
 
@@ -27,53 +28,41 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace nihil {
-	//instead of #include "VertexBuffer/VertexBuffer.h"
-	class VertexBuffer;
-	class IndexBuffer;
+#include "Classes/Renderer/Renderer.hpp"
+#include "Classes/Buffer/Buffer.hpp"
+
+namespace nihil::graphics {
+
+	struct EngineCreateInfo {
+
+	};
 
 	class Engine
 	{
+		friend class Renderer;
 	private:
 		struct Proxy {
 			const vk::Instance* instance;
 			const vk::PhysicalDevice* physicalDevice;
 			const vk::Device* logicalDevice;
-			const vk::RenderPass* renderPass;
-			const vk::Pipeline* pipeline;
-			const vk::CommandPool* commandPool;
-			const vk::CommandBuffer* commandBuffer;
-			const SwapChainBundle* swapchainBundle;
 
 			Proxy(
 				const vk::Instance* instance,
 				const vk::PhysicalDevice* physicalDevice,
-				const vk::Device* logicalDevice,
-				const vk::RenderPass* renderPass,
-				const vk::Pipeline* pipeline,
-				const vk::CommandPool* commandPool,
-				const vk::CommandBuffer* commandBuffer,
-				const SwapChainBundle* swapchainBundle
+				const vk::Device* logicalDevice
 			)
 			{
-				this->commandBuffer = commandBuffer;
-				this->commandPool = commandPool;
 				this->instance = instance;
 				this->logicalDevice = logicalDevice;
 				this->physicalDevice = physicalDevice;
-				this->pipeline = pipeline;
-				this->renderPass = renderPass;
-				this->swapchainBundle = swapchainBundle;
 			}
 		};
+
+		Renderer* renderer;
 	public:
 		App* app = NULL;
 		bool shouldClose = false;
 		bool debug = false;
-
-		int FPS = 80;
-		std::chrono::microseconds frameDuration = std::chrono::microseconds((int)1000000 / (int)FPS);
-		std::chrono::microseconds correction;
 
 		Engine(bool _debug);
 		Engine();
@@ -84,13 +73,20 @@ namespace nihil {
 		//Setup (for now just calls setupdeafult)
 		void Setup();
 
-		//creates the deafult engine to render a simple white triangle
-		void SetupDeafult();
-
-		//Draw
-		void Draw(Scene* scene);
-
 		Proxy* get;
+
+		nstd::OBJ objobject;
+
+		void Draw();
+
+		//allow buffer operations
+		void writeindexBuffer(std::vector<uint32_t> data);
+
+		void writeVertexBuffer(std::vector<float> data);
+
+		std::vector<uint32_t> readIndexBuffer();
+
+		std::vector<float> readVertexBuffer();
 
 	private:
 		/*
@@ -128,53 +124,6 @@ namespace nihil {
 		* @return None
 		*/
 		void CreateVulkanQueues();
-		/*
-		* @brief Creates a swapchain
-		*
-		* @param createInfo - config creation info
-		* @return inforamtion to create the swapchain
-		*/
-		SwapchainConfiguration CreateSwapchainConfiguration(SwapchainConfigCreateInfo createInfo);
-		/*
-		* @brief Creates a swapchain
-		*
-		* @param createInfo - information for the creation of the swapchain
-		* @return None
-		*/
-		void CreateSwapchain(SwapchainConfiguration createInfo);
-		/*
-		* @brief Creates a swapchain
-		*
-		* @param None
-		* @return None
-		*/
-		void CreateImageViews();
-		//sets up the basic pipeline
-		void PipelineSetup();
-		//creates the shader module
-		void CreateShaderModule(std::string filepath, vk::Device device, vk::ShaderModule** ppShaderModule);
-		//render setup related code (organize in future)
-		void RenderSetup();
-		//records draw commands
-		void recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, Scene* scene);
-		//destroy the swapchain
-		void destroySwapchain();
-		//create the flow-control
-		void createSyncObjects();
-		//create framebuffers
-		void createFrameBuffers();
-		//create depthbuffers
-		void createDepthBuffers();
-		//make frame commandbuffers
-		void createFrameCommandBuffers();
-		//make main commandbuffer
-		void createMainCommandBuffer();
-		//make commandpools
-		void createCommandPools();
-		//reacreate swapchain
-		void RecreateSwapchain();
-
-		uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
 		vk::Instance instance;
 		vk::PhysicalDevice device;
@@ -185,37 +134,6 @@ namespace nihil {
 
 		vk::Queue graphicsQueue;
 		vk::Queue presentQueue;
-
-		SwapChainSupportDetails support;
-		vk::SurfaceFormatKHR surfaceFormat;
-		vk::PresentModeKHR presentMode;
-		vk::SwapchainCreateInfoKHR swapCreateInfo;
-
-		std::vector<vk::AttachmentDescription> renderPassAttachments;
-
-		SwapChainBundle swapchainBundle{};
-
-		uint32_t imageCount;
-
-		vk::ShaderModule* vertexShader = NULL;
-		vk::ShaderModule* fragmentShader = NULL;
-
-		vk::PipelineLayout layout;
-		vk::RenderPass renderPass;
-		vk::Pipeline pipeline;
-
-		vk::CommandPool commandPool;
-		vk::CommandBuffer commandBuffer;
-
-		uint32_t maxFramesInFlight, frameNumber;
-
-		//VertexBuffer
-		VertexBuffer* vertexBuffer;
-		IndexBuffer* indexBuffer;
-
-		nstd::OBJ objobject;
-
-		SwapchainConfiguration swapchainConfiguration;
 
 		bool error = false;
 

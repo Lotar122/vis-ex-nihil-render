@@ -6,3 +6,4 @@
 #include "headers/SpliString.hpp"
 #include "headers/OBJLoader.hpp"
 #include "headers/FS.hpp"
+#include "headers/ComponentSystem.hpp"

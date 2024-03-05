@@ -6,9 +6,9 @@ App::App(AppCreationArgs args)
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	//glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-	scene = new Scene();
+	scene = new graphics::Scene();
 
 	this->engine = args.engine;
 	this->width = args.width;
@@ -47,8 +47,6 @@ App::App(AppCreationArgs args)
 	screenRatio.height = aspectRatioHeight;
 
 	get->window = window;
-
-	std::cout << screenRatio.width << " : " << screenRatio.height << std::endl;
 
 	engine->setApp(this);
 }

@@ -4,7 +4,9 @@
 
 layout(location = 0) in vec3 vertexPosition;
 layout(location = 1) in vec3 colorInput;
-layout(location = 2)out vec4 colorInt;
+layout(location = 2) in vec2 texCoord;
+layout(location = 3) in vec3 normal;
+layout(location = 4)out vec4 colorInt;
 layout(push_constant) uniform constants {
 	mat4 trans;
 	mat4 proj;

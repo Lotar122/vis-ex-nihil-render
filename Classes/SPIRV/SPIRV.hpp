@@ -4,7 +4,8 @@
 #include <fstream>
 #include <sstream>
 
-namespace nihil {
+//!!! move to nstd
+namespace nihil::graphics {
 	//the class (static) that provides functions to work with the SPIR-V format
 	class SPIRV
 	{
