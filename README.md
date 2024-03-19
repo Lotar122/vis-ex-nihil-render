@@ -1,5 +1,5 @@
 # vis ex nihil (latin)
 a simple vulkan game engine written in c++
-# See here: https://github.com/Lotar122/vis-ex-nihil-lib for the .lib
+# See here: https://github.com/Lotar122/vis-ex-nihil-lib for the .lib (unmaintained)
 # See here: https://github.com/Lotar122/vis-ex-nihil-std for the nstd lib
 # !!! For now there will be windows releases only, if you want to get it on any other system, feel free to compile !!!
