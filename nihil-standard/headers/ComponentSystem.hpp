@@ -1,98 +1,84 @@
 #pragma once
 #include <vector>
+#include "Callable.hpp"
 namespace nihil::nstd {
-	union ComponentT {
-		std::vector<float>* vf;
-		std::vector<uint32_t>* vui;
+	union ComponentData {
 		void* any;
 	};
+	enum class ComponentType {
+		any = 0
+	};
 
-	enum class ComponentTEnum {
-		vfT,
-		vuiT,
-		anyT
+	struct CustomDataHandleInput {
+		ComponentType type;
+		ComponentData data;
+		size_t dataSize;
+		std::type_info* typeID;
+	};
+
+	struct CustomDataHandleOutput {
+		ComponentType type;
+		ComponentData data;
+		size_t dataSize;
+		std::type_info* typeID;
 	};
 
 	class Component {
-		ComponentT componentData;
-		ComponentTEnum componentT;
-
+		using functionTemplate = CustomDataHandleOutput (*)(CustomDataHandleInput);
 	public:
-		Component(std::vector<uint32_t>* data) {
-			componentData.vui = data;
-		}
-		Component(std::vector<float>* data) {
-			componentData.vf = data;
-		}
-		Component(void* data) {
-			componentData.any = data;
+		Callable <CallableTemplate<CustomDataHandleInput, CustomDataHandleOutput, functionTemplate>> customDataGetHandle;
+		Callable <CallableTemplate<CustomDataHandleInput, CustomDataHandleOutput, functionTemplate>> customDataSetHandle;
+
+		ComponentData data;
+		ComponentType type;
+		size_t dataSize;
+		std::type_info* typeID;
+
+		Component(ComponentData _data, ComponentType _type, size_t _dataSize, const std::type_info* _typeID)
+		{
+			data = _data;
+			type = _type;
+			dataSize = _dataSize;
+			typeID = const_cast<std::type_info*>(_typeID);
+
+			customDataGetHandle.function = [](nihil::nstd::CustomDataHandleInput in) {
+				nihil::nstd::CustomDataHandleOutput out = {};
+				out.data = in.data;
+				out.type = in.type;
+				out.dataSize = in.dataSize;
+				out.typeID = in.typeID;
+				return out;
+			};
+
+			customDataSetHandle.function = [](nihil::nstd::CustomDataHandleInput in) {
+				nihil::nstd::CustomDataHandleOutput out = {};
+				out.data = in.data;
+				out.type = in.type;
+				out.dataSize = in.dataSize;
+				out.typeID = in.typeID;
+				return out;
+			};
 		}
 
-		void* get()
+		CustomDataHandleOutput get()
 		{
-			switch (componentT)
-			{
-			case ComponentTEnum::anyT:
-				return componentData.any;
-				break;
-			case ComponentTEnum::vfT:
-				return (void*)componentData.vf;
-				break;
-			case ComponentTEnum::vuiT:
-				return (void*)componentData.vui;
-				break;
-			}
+			CustomDataHandleInput input = {};
+			input.data = data;
+			input.type = type;
+			input.dataSize = dataSize;
+			input.typeID = typeID; 
+			return customDataGetHandle.execute(input);
 		}
 
-		void set(std::vector<uint32_t>* data)
+		void set(void* _data)
 		{
-			componentData.vui = data;
-		}
-		void set(std::vector<float>* data)
-		{
-			componentData.vf = data;
-		}
-		void set(void* data)
-		{
-			componentData.any = data;
-		}
-	};
-
-	class ComponentArray {
-		std::vector<Component> data;
-		ComponentTEnum type;
-
-	public:
-
-		void append(std::vector<uint32_t>* data)
-		{
-			this->data.push_back(Component(data));
-		}
-		void append(std::vector<float>* data)
-		{
-			this->data.push_back(Component(data));
-		}
-		void append(void* data)
-		{
-			this->data.push_back(Component(data));
-		}
-
-		void assign(std::vector<uint32_t>* data, size_t index)
-		{
-			this->data[index] = Component(data);
-		}
-		void assign(std::vector<float>* data, size_t index)
-		{
-			this->data[index] = Component(data);
-		}
-		void assign(void* data, size_t index)
-		{
-			this->data[index] = Component(data);
-		}
-
-		void erase(size_t index)
-		{
-			this->data.erase(this->data.begin() + index);
+			data.any = _data;
+			CustomDataHandleInput input = {};
+			input.data = data;
+			input.type = type;
+			input.dataSize = dataSize;
+			input.typeID = typeID;
+			data.any = customDataSetHandle.execute(input).data.any;
 		}
 	};
 }

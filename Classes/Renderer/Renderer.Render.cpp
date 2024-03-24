@@ -1,9 +1,10 @@
 #include "Renderer.hpp"
 #include "Classes/Engine/Engine.hpp"
 #include "Classes/Buffer/Buffer.hpp"
+#include "Classes/Model/Model.hpp"
 
 namespace nihil::graphics {
-	void Renderer::Draw()
+	void Renderer::Draw(std::vector<nstd::Component>& modelArr)
 	{
 		engine->logicalDevice.waitForFences(1, &swapchainBundle.frames[frameNumber].inFlightFence, VK_TRUE, UINT64_MAX);
 		uint32_t imageIndex{ 0 };
@@ -25,7 +26,7 @@ namespace nihil::graphics {
 
 		commandBuffer.reset();
 
-		recordDrawCommands(commandBuffer, imageIndex);
+		recordDrawCommands(commandBuffer, imageIndex, modelArr);
 
 		vk::SubmitInfo submitinfo = {};
 		vk::Semaphore waitSemaphores[] = { swapchainBundle.frames[frameNumber].imageAvailable };
@@ -73,7 +74,7 @@ namespace nihil::graphics {
 		//uint16_t currentFPS = calculateFPS(const_cast<GLFWwindow*>(app->get->window), this);
 	}
 	uint64_t count;
-	void Renderer::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex)
+	void Renderer::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, std::vector<nstd::Component>& modelArr)
 	{
 		vk::CommandBufferBeginInfo beginInfo = {};
 		try {
@@ -98,29 +99,6 @@ namespace nihil::graphics {
 
 		commandBuffer.beginRenderPass(passInfo, vk::SubpassContents::eInline);
 		commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline);
-		vk::Buffer vertexBuffers[] = {
-			vertexBuffer->buffer.buffer
-		};
-		vk::DeviceSize offsets[] = {
-			0
-		};
-
-		commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets);
-		commandBuffer.bindIndexBuffer(indexBuffer->buffer.buffer, 0, vk::IndexType::eUint32);
-
-		count++;
-
-		ObjectData data = {};
-
-		data.proj = glm::perspectiveRH(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
-		data.trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -10.0f));
-		data.trans = glm::rotate(data.trans, glm::radians(0.1f * count), glm::vec3(0.0f, 1.0f, 0.0f));
-		data.trans = glm::rotate(data.trans, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		data.trans = glm::scale(data.trans, glm::vec3(0.05f, 0.05f, 0.05f));
-
-		data.pre = data.proj * data.trans;
-
-		commandBuffer.pushConstants(layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectData), &data);
 
 		if (*engine->app->get->width != viewport.width || *engine->app->get->height != viewport.height)
 		{
@@ -136,7 +114,12 @@ namespace nihil::graphics {
 		commandBuffer.setViewport(0, 1, &viewport);
 		commandBuffer.setScissor(0, 1, &scissor);
 
-		commandBuffer.drawIndexed(static_cast<uint32_t>(indexBuffer->Data.size()), 1, 0, 0, 0);
+		//perform drawing for all models (change to the rendering objects later)
+		for (const nstd::Component& comp : modelArr)
+		{
+			Model* model = (Model*)comp.data.any;
+			drawBuffer(model->vBuffer, model->iBuffer, commandBuffer, model);
+		}
 
 		commandBuffer.endRenderPass();
 		try {
@@ -146,5 +129,48 @@ namespace nihil::graphics {
 			std::cerr << "Error whilst ending the render pass" << std::endl;
 			std::abort();
 		}
+	}
+
+	void Renderer::drawBuffer(
+		Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* _vertexBuffer, 
+		Buffer<uint32_t, vk::BufferUsageFlagBits::eIndexBuffer>* _indexBuffer, 
+		vk::CommandBuffer& _commandBuffer, 
+		Model* model
+	)
+	{
+		vk::Buffer vertexBuffers[] = {
+			_vertexBuffer->buffer.buffer
+		};
+		vk::DeviceSize offsets[] = {
+			0
+		};
+
+		_commandBuffer.bindVertexBuffers(0, 1, vertexBuffers, offsets);
+		_commandBuffer.bindIndexBuffer(_indexBuffer->buffer.buffer, 0, vk::IndexType::eUint32);
+
+		count++;
+
+		ObjectData data = {};
+
+		data.proj = glm::perspectiveRH(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
+		data.trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+		data.trans = glm::rotate(data.trans, glm::radians(0.1f * count), glm::vec3(0.0f, 1.0f, 0.0f));
+		data.trans = glm::rotate(data.trans, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		//remove later, only to make thing smaller
+		data.trans = glm::scale(data.trans, glm::vec3(0.05f, 0.05f, 0.05f));
+
+		if (model != NULL)
+		{
+			data.pre = data.proj * data.trans * model->deafultTransform;
+		}
+		else
+		{
+			data.pre = data.proj * data.trans;
+		}
+
+		_commandBuffer.pushConstants(layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectData), &data);
+
+		_commandBuffer.drawIndexed(static_cast<uint32_t>(_indexBuffer->Data.size()), 1, 0, 0, 0);
 	}
 }

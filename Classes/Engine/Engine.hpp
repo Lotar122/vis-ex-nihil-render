@@ -77,7 +77,7 @@ namespace nihil::graphics {
 
 		nstd::OBJ objobject;
 
-		void Draw();
+		void Draw(std::vector<nstd::Component>& modelArr);
 
 		//allow buffer operations
 		void writeindexBuffer(std::vector<uint32_t> data);

@@ -4,11 +4,17 @@
 #include <vector>
 #include <sstream>
 #include <thread>
+#include <array>
 
 #include <filesystem>
 #include <unordered_map>
 
 #include "FS.hpp"
+#include "Checksum.hpp"
+#include "ScreenRatio.hpp"
+#include "SpliString.hpp"
+#include "WidthHeightEnum.hpp"
+#include "USC.hpp"
 
 namespace nihil {
 	namespace nstd {
@@ -619,12 +625,260 @@ namespace nihil {
                 make the unordered map store all possible variants of vertices then after registering all of them move them to
                 a vector and find their indexes(i think ask chathGPT)
                 */
+
+                vertices = vertexVec;
+                faces = facesVec;
+            }
+
+            std::vector<Point> points;
+
+            void loadObjv2(std::string path, ScreenRatio screenRatio)
+            {
+                std::string fileContent = LoadFile(path);
+
+                std::vector<Vertex> vertexVec;
+                std::vector<Face> facesVec;
+                std::vector<TexCoord> texCoordVec;
+                std::vector<Normal> normalVec;
+
+                std::unordered_map<std::string, Point> faceMap;
+
+                std::vector<uint32_t> indicesVec;
+                std::vector<float> verticesVec;
+
+                //parse the obj file
+                // Use std::istringstream to iterate over lines
+                std::istringstream iss(fileContent);
+                std::string line;
+
+                size_t verticesSize = 0;
+                size_t facesSize = 0;
+                size_t texCoordsSize = 0;
+                size_t normalsSize = 0;
+
+                std::vector<std::string> verticesS;
+                std::vector<std::string> texCoordsS;
+                std::vector<std::string> normalsS;
+                std::vector<std::string> facesS;
+
+                //qualify lines for parsing
+                while (std::getline(iss, line)) {
+                    if (line.data()[0] == 'v' && line.data()[1] == ' ') {
+                        verticesSize++;
+                        verticesS.push_back(line);
+                    }
+                    else if (line.data()[0] == 'f' && line.data()[1] == ' ') {
+                        facesSize++;
+                        facesS.push_back(line);
+                    }
+                    else if (line.data()[0] == 'v' && line.data()[1] == 't') {
+                        texCoordsSize++;
+                        texCoordsS.push_back(line);
+                    }
+                    else if (line.data()[0] == 'v' && line.data()[1] == 'n') {
+                        normalsSize++;
+                        normalsS.push_back(line);
+                    }
+                }
+
+                std::thread t1 = std::thread([&verticesS, &vertexVec]() {
+                    for (std::string& s : verticesS)
+                    {
+                        std::vector<std::string> sv = splitString(s, ' ');
+                        Vertex v = {};
+                        for (int i = 1; i < sv.size(); i++)
+                        {
+                            switch (i)
+                            {
+                            case 1:
+                                v.x = std::stof(sv[i]);
+                                break;
+                            case 2:
+                                v.y = std::stof(sv[i]);
+                                break;
+                            case 3:
+                                v.z = std::stof(sv[i]);
+                                break;
+                            }
+                        }
+                        vertexVec.push_back(v);
+                    }
+                    });
+                std::thread t2 = std::thread([&facesS, &facesVec]() {
+                    for (std::string& s : facesS)
+                    {
+                        std::vector<std::string> sv = splitString(s, ' ');
+                        Face f = {};
+                        std::vector<std::vector<std::string>> ssv(3);
+                        for (int i = 1; i < sv.size(); i++)
+                        {
+                            switch (i) {
+                            case 1:
+                                ssv[i - 1] = splitString(sv[i], '/');
+                                for (int z = 0; z < ssv[i - 1].size(); z++)
+                                {
+                                    switch (z)
+                                    {
+                                    case 0:
+                                        f.vi1 = std::stoi(ssv[i - 1][0]);
+                                        break;
+                                    case 1:
+                                        f.ti1 = std::stoi(ssv[i - 1][1]);
+                                        break;
+                                    case 2:
+                                        f.ni1 = std::stoi(ssv[i - 1][2]);
+                                        break;
+                                    }
+                                }
+                                break;
+                            case 2:
+                                ssv[i - 1] = splitString(sv[i], '/');
+                                for (int z = 0; z < ssv[i - 1].size(); z++)
+                                {
+                                    switch (z)
+                                    {
+                                    case 0:
+                                        f.vi2 = std::stoi(ssv[i - 1][0]);
+                                        break;
+                                    case 1:
+                                        f.ti2 = std::stoi(ssv[i - 1][1]);
+                                        break;
+                                    case 2:
+                                        f.ni2 = std::stoi(ssv[i - 1][2]);
+                                        break;
+                                    }
+                                }
+                                break;
+                            case 3:
+                                ssv[i - 1] = splitString(sv[i], '/');
+                                for (int z = 0; z < ssv[i - 1].size(); z++)
+                                {
+                                    switch (z)
+                                    {
+                                    case 0:
+                                        f.vi3 = std::stoi(ssv[i - 1][0]);
+                                        break;
+                                    case 1:
+                                        f.ti3 = std::stoi(ssv[i - 1][1]);
+                                        break;
+                                    case 2:
+                                        f.ni3 = std::stoi(ssv[i - 1][2]);
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                        }
+                        facesVec.push_back(f);
+                    }
+                    });
+                std::thread t3 = std::thread([&normalsS, &normalVec]() {
+                    for (std::string& s : normalsS)
+                    {
+                        std::vector<std::string> sv = splitString(s, ' ');
+                        Normal n = {};
+                        for (int i = 1; i < 4; i++)
+                        {
+                            switch (i)
+                            {
+                            case 1:
+                                n.x = std::stof(sv[i]);
+                                break;
+                            case 2:
+                                n.y = std::stof(sv[i]);
+                                break;
+                            case 3:
+                                n.z = std::stof(sv[i]);
+                                break;
+                            }
+                        }
+                        normalVec.push_back(n);
+                    }
+                    });
+                std::thread t4 = std::thread([&texCoordsS, &texCoordVec]() {
+                    for (std::string& s : texCoordsS)
+                    {
+                        std::vector<std::string> sv = splitString(s, ' ');
+                        TexCoord t = {};
+                        for (int i = 1; i < 3; i++)
+                        {
+                            switch (i)
+                            {
+                            case 1:
+                                t.x = std::stof(sv[i]);
+                                break;
+                            case 2:
+                                t.y = std::stof(sv[i]);
+                                break;
+                            }
+                        }
+                        texCoordVec.push_back(t);
+                    }
+                    });
+                t1.join();
+                t2.join();
+                t3.join();
+                t4.join();
+
+                uint32_t index = 0;
+                for (const Face& f : facesVec)
+                {
+                    std::array<Point, 3> points;
+                    points[0] = Point(f.vi1, f.ti1, f.ni1);
+                    points[1] = Point(f.vi2, f.ti2, f.ni2);
+                    points[2] = Point(f.vi3, f.ti3, f.ni3);
+
+                    for (int i = 0; i < points.size(); i++)
+                    {
+                        if (faceMap.find(points[i].to_string()) == faceMap.end())
+                        {
+                            points[i].index = index;
+                            faceMap.insert(std::make_pair(points[i].to_string(), points[i]));
+                            index++;
+                        }
+
+                        auto it = faceMap.find(points[i].to_string());
+                        indicesRender.push_back(it->second.index);
+                    }
+                }
+
+                verticesRender.resize(faceMap.size() * 11);
+
+                uint64_t count = 1;
+                for (auto& f : faceMap)
+                {
+                    verticesRender[f.second.index * 11 + 0] = vertexVec[f.second.vi - 1].x;
+                    verticesRender[f.second.index * 11 + 1] = vertexVec[f.second.vi - 1].y;
+                    verticesRender[f.second.index * 11 + 2] = vertexVec[f.second.vi - 1].z;
+
+                    verticesRender[f.second.index * 11 + 3] = 0.4f * count;
+                    verticesRender[f.second.index * 11 + 4] = 0.2f * count;
+                    verticesRender[f.second.index * 11 + 5] = 0.3f * count;
+
+                    if (count >= 3) count = 0;
+
+                    verticesRender[f.second.index * 11 + 6] = texCoordVec[f.second.ti - 1].x;
+                    verticesRender[f.second.index * 11 + 7] = texCoordVec[f.second.ti - 1].y;
+
+                    verticesRender[f.second.index * 11 + 8] = normalVec[f.second.ni - 1].x;
+                    verticesRender[f.second.index * 11 + 9] = normalVec[f.second.ni - 1].y;
+                    verticesRender[f.second.index * 11 + 10] = normalVec[f.second.ni - 1].z;
+
+                    count++;
+                }
+
+                vertices = vertexVec;
+                points.resize(faceMap.size());
+                for (auto& f : faceMap)
+                {
+                    points[f.second.index] = f.second;
+                }
             }
 
             void loadOBJ(std::string path, ScreenRatio screenRatio)
             {
                 auto start = std::chrono::high_resolution_clock::now();
-                loadOBJAdvanced(path, screenRatio);
+                loadObjv2(path, screenRatio);
                 auto end = std::chrono::high_resolution_clock::now();
                 std::cout << "Advanced Loading: " << end - start << std::endl;
                 //important save before applying USC
@@ -633,9 +887,9 @@ namespace nihil {
                 //apply USC
                 for (int i = 0; i < verticesRender.size(); i += 11)
                 {
-                    verticesRender[i] = USC::NDC_u(verticesRender[i] * 1000, screenRatio, WidthHeightEnum::Width);
-                    verticesRender[i + 1] = USC::NDC_u(verticesRender[i + 1] * 1000, screenRatio, WidthHeightEnum::Height);
-                    verticesRender[i + 2] = USC::NDC_u(verticesRender[i + 2] * 1000, screenRatio, WidthHeightEnum::Depth);
+                    //verticesRender[i] = USC::NDC_u(verticesRender[i] * 1000, screenRatio, WidthHeightEnum::Width);
+                    //verticesRender[i + 1] = USC::NDC_u(verticesRender[i + 1] * 1000, screenRatio, WidthHeightEnum::Height);
+                    //verticesRender[i + 2] = USC::NDC_u(verticesRender[i + 2] * 1000, screenRatio, WidthHeightEnum::Depth);
                 }
             }
 
@@ -662,6 +916,35 @@ namespace nihil {
                         std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
                     }
                     else 
+                    {
+                        loadOBJ(path, screenRatio);
+                    }
+                }
+            }
+
+            void LoadDebug(std::string path, LoadBinObj whatToLoad, ScreenRatio screenRatio)
+            {
+                if (whatToLoad == LoadBinObj::Obj)
+                {
+                    loadOBJ(path, screenRatio);
+                }
+                else if (whatToLoad == LoadBinObj::Bin)
+                {
+                    auto start = std::chrono::high_resolution_clock::now();
+                    loadFromBinaryLib(path, screenRatio);
+                    auto end = std::chrono::high_resolution_clock::now();
+                    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+                }
+                else if (whatToLoad == LoadBinObj::DontCare)
+                {
+                    if (std::filesystem::exists(path + ".indices.bin") && std::filesystem::exists(path + ".vertices.bin") && !checkForChanges(path))
+                    {
+                        auto start = std::chrono::high_resolution_clock::now();
+                        loadFromBinaryLib(path, screenRatio);
+                        auto end = std::chrono::high_resolution_clock::now();
+                        std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
+                    }
+                    else
                     {
                         loadOBJ(path, screenRatio);
                     }

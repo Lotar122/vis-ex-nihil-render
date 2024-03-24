@@ -22,7 +22,9 @@ namespace nihil {
 				return function(input);
 			}
 
-			template<typename cT>
+			Callable()
+			{}
+
 			Callable(typename cT::fT _function)
 			{
 				function = _function;

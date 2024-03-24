@@ -11,8 +11,8 @@
 
 using namespace nihil::graphics;
 
-void Engine::Draw() {
-	renderer->Draw();
+void Engine::Draw(std::vector<nstd::Component>& modelArr) {
+	renderer->Draw(modelArr);
 }
 
 Engine::Engine(bool _debug)
@@ -85,24 +85,4 @@ void Engine::Setup()
 void Engine::setApp(App* _app)
 {
 	app = _app;
-}
-
-void Engine::writeindexBuffer(std::vector<uint32_t> data)
-{
-	renderer->indexBuffer->refresh(data);
-}
-
-void Engine::writeVertexBuffer(std::vector<float> data)
-{
-	renderer->vertexBuffer->refresh(data);
-}
-
-std::vector<uint32_t> Engine::readIndexBuffer()
-{
-	return renderer->indexBuffer->Data;
-}
-
-std::vector<float> Engine::readVertexBuffer()
-{
-	return renderer->vertexBuffer->Data;
 }

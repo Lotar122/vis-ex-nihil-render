@@ -16,14 +16,6 @@ namespace nihil::graphics {
 		presentQueue = engine->presentQueue;
 		uniqueFAMIND = engine->uniqueFAMIND;
 
-		nstd::OBJ* objtemp = new nstd::OBJ();
-		objtemp->Load("./resources/models/cube.obj", nstd::LoadBinObj::DontCare, engine->app->screenRatio);
-
-		vertexBuffer = new Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>(engine, objtemp->verticesRender);
-		indexBuffer = new Buffer<uint32_t, vk::BufferUsageFlagBits::eIndexBuffer>(engine, objtemp->indicesRender);
-
-		delete objtemp;
-
 		SwapchainConfigCreateInfo swapchainConfigCreateInfo = {};
 		swapchainConfigCreateInfo.preferredBuffering = BufferingMode::eTriple;
 		swapchainConfigCreateInfo.windowWidth = *engine->app->get->width;
@@ -66,9 +58,6 @@ namespace nihil::graphics {
 		engine->logicalDevice.destroyRenderPass(renderPass);
 
 		destroySwapchain();
-
-		delete vertexBuffer;
-		delete indexBuffer;
 
 		engine->logicalDevice.waitIdle();
 		engine->logicalDevice.destroy();

@@ -80,7 +80,7 @@ namespace nihil::graphics {
 
 		//Vertex shader
 		// in class declaration: vk::ShaderModule* vertexShader = NULL;
-		CreateShaderModule("./Shaders/shaderV.spv", engine->logicalDevice, &vertexShader);
+		CreateShaderModule("./resources/Shaders/shaderV.spv", engine->logicalDevice, &vertexShader);
 		vk::PipelineShaderStageCreateInfo vertexShaderInfo = {};
 		vertexShaderInfo.flags = vk::PipelineShaderStageCreateFlags();
 		vertexShaderInfo.stage = vk::ShaderStageFlagBits::eVertex;
@@ -131,17 +131,14 @@ namespace nihil::graphics {
 		rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
 		rasterizationInfo.polygonMode = vk::PolygonMode::eFill;
 		rasterizationInfo.lineWidth = 1.0f;
-		rasterizationInfo.cullMode = vk::CullModeFlagBits::eBack;
+		rasterizationInfo.cullMode = vk::CullModeFlagBits::eNone;
 		rasterizationInfo.frontFace = vk::FrontFace::eClockwise;
 		rasterizationInfo.depthBiasEnable = VK_FALSE;
-		//TEMP
-		rasterizationInfo.cullMode = vk::CullModeFlagBits::eNone;
-		//TEMP
 		pipelineInfo.pRasterizationState = &rasterizationInfo;
 
 		//Fragment shader
 		//in class declaration: vk::ShaderModule* fragmentShader = NULL;
-		CreateShaderModule("./Shaders/shaderF.spv", engine->logicalDevice, &fragmentShader);
+		CreateShaderModule("./resources/Shaders/shaderF.spv", engine->logicalDevice, &fragmentShader);
 		vk::PipelineShaderStageCreateInfo fragmentShaderInfo = {};
 		fragmentShaderInfo.flags = vk::PipelineShaderStageCreateFlags();
 		fragmentShaderInfo.stage = vk::ShaderStageFlagBits::eFragment;

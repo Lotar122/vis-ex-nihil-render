@@ -23,6 +23,7 @@
     <ClCompile Include="Classes\Buffer\Buffer.tpp" />
     <ClCompile Include="Classes\Engine\Engine.Primary.cpp" />
     <ClCompile Include="Classes\Engine\Engine.Structs.InData.hpp" />
+    <ClCompile Include="Classes\Model\Model.cpp" />
     <ClCompile Include="Classes\Pipeline\Pipeline.cpp" />
     <ClCompile Include="Classes\Renderer\Renderer.cpp" />
     <ClCompile Include="Classes\Renderer\Renderer.Pipeline.cpp" />
@@ -33,13 +34,12 @@
     <ClCompile Include="Classes\Engine\Engine.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Classes\Memory\Memory.cpp" />
-    <ClCompile Include="nihil-standard\headers\FS.cpp" />
-    <ClCompile Include="nihil-standard\headers\SplitString.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\App\App.hpp" />
     <ClInclude Include="Classes\Buffer\Buffer.hpp" />
     <ClInclude Include="Classes\Engine\RenderStructs.hpp" />
+    <ClInclude Include="Classes\Model\Model.hpp" />
     <ClInclude Include="Classes\Pipeline\Pipeline.hpp" />
     <ClInclude Include="Classes\Renderer\Renderer.hpp" />
     <ClInclude Include="Classes\Scene\Scene.hpp" />
@@ -47,7 +47,6 @@
     <ClInclude Include="Classes\Engine\Engine.hpp" />
     <ClInclude Include="Classes\Memory\Memory.hpp" />
     <ClInclude Include="implicit_cast.hpp" />
-    <ClInclude Include="nihil-standard\headers\ComponentSystem.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />
@@ -108,11 +107,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)\thirdparty\lib;</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)\thirdparty\lib;$(ProjectDir)\nihil-standard;</LibraryPath>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\thirdparty\include;$(ProjectDir)\Classes;$(ProjectDir);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)\thirdparty\lib;</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)\thirdparty\lib;$(ProjectDir)\nihil-standard;</LibraryPath>
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\thirdparty\include;$(ProjectDir)\Classes;$(ProjectDir);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -157,7 +156,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3_mt.lib;vulkan-1.lib;</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3_mt.lib;vulkan-1.lib;nstd.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\glfw-3.0.4\GLFW;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -179,7 +178,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3_mt.lib;vulkan-1.lib;</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);glfw3_mt.lib;vulkan-1.lib;nstd.lib;</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\glfw-3.0.4\GLFW;</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>

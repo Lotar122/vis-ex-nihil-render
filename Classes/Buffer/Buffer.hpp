@@ -22,6 +22,3 @@ namespace nihil::graphics {
 }
 
 #include "Buffer.tpp"
-
-#define VertexBuffer = Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>;
-#define IndexBuffer = Buffer<uint32_t, vk::BufferUsageFlagBits::eIndexBuffer>;

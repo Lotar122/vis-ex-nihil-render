@@ -8,6 +8,7 @@
 namespace nihil::graphics {
 	class Engine;
 	class Scene;
+	class Model;
 
 	class Renderer {
 		friend class Engine;
@@ -16,7 +17,9 @@ namespace nihil::graphics {
 		~Renderer();
 
 		//Draw
-		void Draw();
+		void Draw(std::vector<nstd::Component>& modelArr);
+
+		void drawBuffer(Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* vertexBuffer, Buffer<uint32_t, vk::BufferUsageFlagBits::eIndexBuffer>* indexBuffer, vk::CommandBuffer& _commandBuffer, Model* model = NULL);
 
 		nstd::OBJ* objobject;
 	private:
@@ -46,7 +49,7 @@ namespace nihil::graphics {
 		//creates the shader module
 		void CreateShaderModule(std::string filepath, vk::Device device, vk::ShaderModule** ppShaderModule);
 		//records draw commands
-		void recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex);
+		void recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, std::vector<nstd::Component>& modelArr);
 		//destroy the swapchain
 		void destroySwapchain();
 		//create the flow-control
@@ -99,10 +102,6 @@ namespace nihil::graphics {
 		uint32_t maxFramesInFlight, frameNumber;
 
 		Engine* engine;
-
-		//VertexBuffer
-		Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* vertexBuffer;
-		Buffer<uint32_t, vk::BufferUsageFlagBits::eIndexBuffer>* indexBuffer;
 
 		SwapchainConfiguration swapchainConfiguration;
 	};
