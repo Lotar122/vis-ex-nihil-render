@@ -22,6 +22,7 @@ namespace nihil::graphics {
 	template<typename T, vk::BufferUsageFlagBits usageT>
 	Buffer<T, usageT>::~Buffer()
 	{
+		engine->get->logicalDevice->waitIdle();
 		engine->get->logicalDevice->destroyBuffer(buffer.buffer);
 		engine->get->logicalDevice->freeMemory(buffer.memory);
 	}

@@ -70,8 +70,6 @@ namespace nihil::graphics {
 		}
 
 		frameNumber = (frameNumber + 1) % maxFramesInFlight;
-
-		//uint16_t currentFPS = calculateFPS(const_cast<GLFWwindow*>(app->get->window), this);
 	}
 	uint64_t count;
 	void Renderer::recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, std::vector<nstd::Component>& modelArr)
@@ -118,7 +116,7 @@ namespace nihil::graphics {
 		for (const nstd::Component& comp : modelArr)
 		{
 			Model* model = (Model*)comp.data.any;
-			drawBuffer(model->vBuffer, model->iBuffer, commandBuffer, model);
+			drawInstanced(model, commandBuffer, model->instanceBuffer);
 		}
 
 		commandBuffer.endRenderPass();
@@ -172,5 +170,42 @@ namespace nihil::graphics {
 		_commandBuffer.pushConstants(layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectData), &data);
 
 		_commandBuffer.drawIndexed(static_cast<uint32_t>(_indexBuffer->Data.size()), 1, 0, 0, 0);
+	}
+
+	void Renderer::drawInstanced(
+		Model* model, 
+		vk::CommandBuffer& _commandBuffer, 
+		Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* instanceBuffer
+	)
+	{
+		std::array<vk::Buffer, 2> vertexBuffers = {
+			model->vBuffer->buffer.buffer,
+			instanceBuffer->buffer.buffer
+		};
+		vk::DeviceSize offsets[] = {
+			0,
+			0
+		};
+
+		_commandBuffer.bindVertexBuffers(0, vertexBuffers.size(), vertexBuffers.data(), offsets);
+		_commandBuffer.bindIndexBuffer(model->iBuffer->buffer.buffer, 0, vk::IndexType::eUint32);
+
+		count++;
+
+		ObjectData data = {};
+
+		data.proj = glm::perspectiveRH(glm::radians(90.0f), 1.0f, 0.1f, 100.0f);
+		data.trans = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+		data.trans = glm::rotate(data.trans, glm::radians(0.1f * count), glm::vec3(1.0f, 1.0f, 0.0f));
+		data.trans = glm::rotate(data.trans, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		//remove later, only to make things smaller
+		data.trans = glm::scale(data.trans, glm::vec3(0.05f, 0.05f, 0.05f));
+
+		data.pre = data.proj * data.trans * model->deafultTransform;
+
+		_commandBuffer.pushConstants(layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(ObjectData), &data);
+
+		_commandBuffer.drawIndexed(static_cast<uint32_t>(model->iBuffer->Data.size()), std::floor(instanceBuffer->Data.size() / 4), 0, 0, 0);
 	}
 }

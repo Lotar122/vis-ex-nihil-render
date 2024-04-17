@@ -12,10 +12,10 @@ namespace nihil::graphics {
 		createInfo.codeSize = sourceCode.size();
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(sourceCode.data());
 
-		vk::ShaderModule module;
+		vk::ShaderModule* module = new vk::ShaderModule();
 
 		try {
-			module = device.createShaderModule(createInfo);
+			*module = device.createShaderModule(createInfo);
 		}
 		catch (vk::SystemError err) {
 			std::cerr << RED << "[###]" << RESET << std::endl;
@@ -26,7 +26,7 @@ namespace nihil::graphics {
 		}
 		std::cout << GREEN << "[###]" << RESET << std::endl;
 
-		*ppShaderModule = &module;
+		*ppShaderModule = module;
 	}
 
 	void Renderer::PipelineSetup()
@@ -35,14 +35,24 @@ namespace nihil::graphics {
 		pipelineInfo.flags = vk::PipelineCreateFlags();
 		std::vector<vk::PipelineShaderStageCreateInfo> shaderStages;
 
+		/*
+		* create bindings for a mat4 by making 4 vec4, make sure to add offsets
+		*/
+
 		if (engine->debug) std::cout << YELLOW << "[Setup]" << MAGENTA << "->" << YELLOW << "[Pipeline]" << RESET << "Creating a vertex input " << GREEN << "[###]" << RESET << std::endl;
 		//Vertex Input
-		vk::VertexInputBindingDescription bindingDesc = {};
-		bindingDesc.binding = 0;
-		bindingDesc.stride = 11 * sizeof(float);
-		bindingDesc.inputRate = vk::VertexInputRate::eVertex;
+		std::array<vk::VertexInputBindingDescription, 2> bindingDesc;
 
-		std::array<vk::VertexInputAttributeDescription, 5> attributes;
+		bindingDesc[0].binding = 0;
+		bindingDesc[0].stride = 11 * sizeof(float);
+		bindingDesc[0].inputRate = vk::VertexInputRate::eVertex;
+
+		bindingDesc[1].binding = 1;
+		bindingDesc[1].stride = 16 * sizeof(float);
+		bindingDesc[1].inputRate = vk::VertexInputRate::eInstance;
+
+		std::array<vk::VertexInputAttributeDescription, 8> attributes;
+
 		attributes[0].binding = 0;
 		attributes[0].location = 0;
 		attributes[0].format = vk::Format::eR32G32B32Sfloat;
@@ -63,11 +73,32 @@ namespace nihil::graphics {
 		attributes[3].format = vk::Format::eR32G32B32Sfloat;
 		attributes[3].offset = 8 * sizeof(float);
 
+
+		attributes[4].binding = 1;
+		attributes[4].location = 5;
+		attributes[4].format = vk::Format::eR32G32B32A32Sfloat;
+		attributes[4].offset = 0;
+
+		attributes[5].binding = 1;
+		attributes[5].location = 6;
+		attributes[5].format = vk::Format::eR32G32B32A32Sfloat;
+		attributes[5].offset = 4 * sizeof(float);
+
+		attributes[6].binding = 1;
+		attributes[6].location = 7;
+		attributes[6].format = vk::Format::eR32G32B32A32Sfloat;
+		attributes[6].offset = 8 * sizeof(float);
+
+		attributes[7].binding = 1;
+		attributes[7].location = 8;
+		attributes[7].format = vk::Format::eR32G32B32A32Sfloat;
+		attributes[7].offset = 12 * sizeof(float);
+
 		vk::PipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.flags = vk::PipelineVertexInputStateCreateFlags();
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
-		vertexInputInfo.vertexAttributeDescriptionCount = 4;
+		vertexInputInfo.vertexBindingDescriptionCount = bindingDesc.size();
+		vertexInputInfo.pVertexBindingDescriptions = bindingDesc.data();
+		vertexInputInfo.vertexAttributeDescriptionCount = attributes.size();
 		vertexInputInfo.pVertexAttributeDescriptions = attributes.data();
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 
@@ -132,7 +163,8 @@ namespace nihil::graphics {
 		rasterizationInfo.polygonMode = vk::PolygonMode::eFill;
 		rasterizationInfo.lineWidth = 1.0f;
 		rasterizationInfo.cullMode = vk::CullModeFlagBits::eNone;
-		rasterizationInfo.frontFace = vk::FrontFace::eClockwise;
+		//make editable
+		rasterizationInfo.frontFace = vk::FrontFace::eCounterClockwise;
 		rasterizationInfo.depthBiasEnable = VK_FALSE;
 		pipelineInfo.pRasterizationState = &rasterizationInfo;
 

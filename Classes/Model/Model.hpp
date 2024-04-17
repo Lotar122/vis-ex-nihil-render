@@ -23,12 +23,13 @@ namespace nihil::graphics {
 
 		Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* vBuffer;
 		Buffer<uint32_t, vk::BufferUsageFlagBits::eIndexBuffer>* iBuffer;
+		Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* instanceBuffer;
 
-		Model(Engine* _engine, glm::mat4 _deafultTransform = glm::mat4(1.0f));
+		Model(Engine* _engine, Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* _instanceBuffer = NULL, glm::mat4 _deafultTransform = glm::mat4(1.0f));
 
-		Model(Engine* _engine, const std::string path, glm::mat4 _deafultTransform = glm::mat4(1.0f));
+		Model(Engine* _engine, const std::string path, Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* _instanceBuffer = NULL, glm::mat4 _deafultTransform = glm::mat4(1.0f));
 
-		Model(Engine* _engine, nstd::OBJ _obj, glm::mat4 _deafultTransform = glm::mat4(1.0f));
+		Model(Engine* _engine, nstd::OBJ _obj, Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* _instanceBuffer = NULL, glm::mat4 _deafultTransform = glm::mat4(1.0f));
 
 		void Load(const std::string path);
 	};

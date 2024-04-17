@@ -16,6 +16,7 @@
     <ClCompile Include="Classes\Renderer\Renderer.Render.cpp" />
     <ClCompile Include="Classes\Buffer\Buffer.tpp" />
     <ClCompile Include="Classes\Model\Model.cpp" />
+    <ClCompile Include="Classes\Engine\Engine.DynamicPipeline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\App\App.hpp" />
@@ -29,6 +30,7 @@
     <ClInclude Include="Classes\Renderer\Renderer.hpp" />
     <ClInclude Include="Classes\Buffer\Buffer.hpp" />
     <ClInclude Include="Classes\Model\Model.hpp" />
+    <ClInclude Include="Classes\InstanceData\InstanceData.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />

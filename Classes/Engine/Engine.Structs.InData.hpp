@@ -24,6 +24,29 @@ namespace nihil::graphics {
 			patch = _patch;
 		}
 	};
+
+	struct VertexAttribute {
+		uint32_t binding;
+		uint32_t location;
+
+		vk::Format format;
+		uint32_t offset;
+	};
+	struct VertexBindingInformation {
+		vk::VertexInputRate inputRate;
+	};
+	struct PipelineInfo {
+		std::vector<vk::VertexInputBindingDescription> bindingDesc;
+		std::vector<vk::VertexInputAttributeDescription> attributeDesc;
+
+		vk::ShaderModule* vertexShader;
+		vk::ShaderModule* fragmentShader;
+	};
+	struct PipelineAndRenderPass {
+		vk::Pipeline pipeline;
+		vk::RenderPass renderPass;
+	};
+
 	struct VulkanInstanceCreateInfo {
 		Version appVersion;
 		Version vulkanVersion;

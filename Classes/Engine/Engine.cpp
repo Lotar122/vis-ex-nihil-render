@@ -77,9 +77,6 @@ void Engine::Setup()
 	CreateVulkanLogicalDevice();
 
 	renderer = new Renderer(this);
-
-	//temporary
-	renderer->objobject = &objobject;
 }
 
 void Engine::setApp(App* _app)

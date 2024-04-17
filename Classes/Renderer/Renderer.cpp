@@ -18,6 +18,7 @@ namespace nihil::graphics {
 
 		SwapchainConfigCreateInfo swapchainConfigCreateInfo = {};
 		swapchainConfigCreateInfo.preferredBuffering = BufferingMode::eTriple;
+		std::cout << engine->app->get->width << std::endl;
 		swapchainConfigCreateInfo.windowWidth = *engine->app->get->width;
 		swapchainConfigCreateInfo.windowHeight = *engine->app->get->height;
 
