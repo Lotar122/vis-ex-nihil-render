@@ -34,6 +34,7 @@ namespace nihil::graphics {
 	};
 	struct VertexBindingInformation {
 		vk::VertexInputRate inputRate;
+		uint32_t stride;
 	};
 	struct PipelineInfo {
 		std::vector<vk::VertexInputBindingDescription> bindingDesc;

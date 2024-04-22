@@ -119,6 +119,13 @@ namespace nihil::graphics {
 			drawInstanced(model, commandBuffer, model->instanceBuffer);
 		}
 
+		/*Model* model = (Model*)modelArr[0].data.any;
+		vk::DeviceSize off[] =
+		{
+			0
+		};
+		commandBuffer.bindVertexBuffers(0, model->vBuffer->buffer.buffer, off);
+		commandBuffer.draw(3, 1, 1, 1);*/
 		commandBuffer.endRenderPass();
 		try {
 			commandBuffer.end();

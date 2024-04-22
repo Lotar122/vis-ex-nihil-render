@@ -31,15 +31,17 @@ namespace nihil::graphics
 			attribDesc.binding = comb.first;
 			attribDesc.location = comb.second;
 			vk::Format format = vk::Format::eUndefined;
+			uint32_t offset = 0;
 			for (VertexAttribute& attrib : attributes)
 			{
 				if (attrib.binding == comb.first && attrib.location == comb.second)
 				{
 					format = attrib.format;
+					offset = attrib.offset;
 				}
 			}
 			attribDesc.format = format;
-			attribDesc.offset = 0;
+			attribDesc.offset = offset;
 	
 			bindingDesc.binding = comb.first;
 			bindingDesc.inputRate = bindingInfo[comb.first].inputRate;
@@ -66,6 +68,22 @@ namespace nihil::graphics
 			{
 				out.attributeDesc.push_back(attribDesc);
 			}
+		}
+
+		std::vector<uint32_t> bindingStride(out.bindingDesc.size());
+
+		for (vk::VertexInputAttributeDescription& desc : out.attributeDesc)
+		{
+			bindingStride[desc.binding] += GetFormatLenght(desc.format);
+		}
+		for (vk::VertexInputBindingDescription& bind : out.bindingDesc)
+		{
+			bind.stride = bindingStride[bind.binding];
+		}
+
+		for (vk::VertexInputAttributeDescription& desc : out.attributeDesc)
+		{
+			std::cout << "binding: " << desc.binding << " " << "location: " << desc.location << " " << "offset: " << desc.offset << std::endl;
 		}
 
 		out.fragmentShader = fragmentShader;
@@ -239,6 +257,9 @@ namespace nihil::graphics
 		std::cout << GREEN << "[###]" << RESET << std::endl;
 
 		if (this->debug) std::cout << YELLOW << "[Setup]" << MAGENTA << "->" << YELLOW << "[Pipeline]" << RESET << "Creating a renderpass ";
+		
+		std::vector<vk::AttachmentDescription> renderPassAttachments;
+		
 		//Create render pass (move to a seperate function in future)
 		//in class declaration: vk::RenderPass renderPass;
 		vk::AttachmentDescription colorAttachment = {};
@@ -252,7 +273,7 @@ namespace nihil::graphics
 		colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
 		colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 
-		renderer->renderPassAttachments.push_back(colorAttachment);
+		renderPassAttachments.push_back(colorAttachment);
 
 		renderer->swapchainBundle.depthFormat = vk::Format::eD32Sfloat;
 
@@ -266,7 +287,7 @@ namespace nihil::graphics
 		depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
 		depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
-		renderer->renderPassAttachments.push_back(depthAttachment);
+		renderPassAttachments.push_back(depthAttachment);
 
 		vk::AttachmentReference colorAttachmentRef = {};
 		colorAttachmentRef.attachment = 0;
@@ -293,8 +314,8 @@ namespace nihil::graphics
 
 		vk::RenderPassCreateInfo renderpassInfo = {};
 		renderpassInfo.flags = vk::RenderPassCreateFlags();
-		renderpassInfo.attachmentCount = renderer->renderPassAttachments.size();
-		renderpassInfo.pAttachments = renderer->renderPassAttachments.data();
+		renderpassInfo.attachmentCount = renderPassAttachments.size();
+		renderpassInfo.pAttachments = renderPassAttachments.data();
 		renderpassInfo.subpassCount = 1;
 		renderpassInfo.pSubpasses = &subpass;
 		renderpassInfo.dependencyCount = 1;

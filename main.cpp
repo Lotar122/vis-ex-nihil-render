@@ -119,7 +119,9 @@ int main()
 		nihil::graphics::VertexBindingInformation binding2 = {};
 
 		binding1.inputRate = vk::VertexInputRate::eVertex;
+		binding1.stride = 0;
 		binding2.inputRate = vk::VertexInputRate::eInstance;
+		binding2.stride = 0;
 
 		bindingInfo.push_back(binding1);
 		bindingInfo.push_back(binding2);
@@ -156,13 +158,22 @@ int main()
 		std::vector<nihil::nstd::Component> compArr;
 		compArr.push_back(componentCar);
 
+		vk::Pipeline backupPipeline = engine->renderer->pipeline;
+
 		//pipeline assignment
 		engine->renderer->pipeline = par.pipeline;
 		engine->renderer->renderPass = par.renderPass;
-
+		
+		uint64_t deleteDebug = 0;
 		while (!*(app->get->shouldClose))
 		{
 			engine->Draw(compArr);
+			deleteDebug++;
+			if (deleteDebug > 1000)
+			{
+				engine->renderer->pipeline = backupPipeline;
+			}
+			std::cout << deleteDebug << std::endl;
 		}
 	}, app, engine);
 
