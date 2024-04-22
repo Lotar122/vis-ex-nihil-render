@@ -5,6 +5,7 @@
 #include "nihil-standard/nstd.hpp"
 #include "Classes/Buffer/Buffer.hpp"
 #include "Classes/InstanceData/InstanceData.hpp"
+#include "Classes/Commands/Command.hpp"
 
 namespace nihil::graphics {
 	class Engine;
@@ -70,6 +71,8 @@ namespace nihil::graphics {
 		void createCommandPools();
 		//reacreate swapchain
 		void RecreateSwapchain();
+
+		void executeCommandQueue(std::vector<Command>* commandQueue, vk::CommandBuffer& commandBuffer, uint32_t imageIndex);
 
 		uint32_t findMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 

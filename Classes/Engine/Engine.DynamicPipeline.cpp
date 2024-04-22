@@ -93,7 +93,7 @@ namespace nihil::graphics
 		return out;
 	}
 
-	PipelineAndRenderPass Engine::CreatePipeline(PipelineInfo pipelineInfoN)
+	vk::Pipeline Engine::CreatePipeline(PipelineInfo pipelineInfoN)
 	{
 		vk::GraphicsPipelineCreateInfo pipelineInfo = {};
 		pipelineInfo.flags = vk::PipelineCreateFlags();
@@ -349,6 +349,23 @@ namespace nihil::graphics
 
 		out.renderPass = renderPass;
 		out.pipeline = pipeline;
-		return out;
+		return pipeline;
+	}
+
+	uint32_t Engine::registerPipeline(vk::Pipeline pipeline)
+	{
+		uint32_t index = pipelineStorage.size();
+		pipelineStorage.push_back(pipeline);
+		if (pipeline != pipelineStorage[index])
+		{
+			std::cerr << "An unexpected error occured" << std::endl;
+			std::abort();
+		}
+		return index;
+	}
+
+	vk::Pipeline* Engine::getPipeline(uint32_t index)
+	{
+		return &(pipelineStorage[index]);
 	}
 }

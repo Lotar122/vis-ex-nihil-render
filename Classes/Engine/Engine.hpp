@@ -31,6 +31,8 @@
 #include "Classes/Renderer/Renderer.hpp"
 #include "Classes/Buffer/Buffer.hpp"
 
+#include "Classes/Commands/Command.hpp"
+
 namespace nihil::graphics {
 
 	struct EngineCreateInfo {
@@ -236,8 +238,18 @@ namespace nihil::graphics {
 		}
 
         PipelineInfo CreatePipelineConfiguration(std::vector<VertexAttribute> attributes, std::vector<VertexBindingInformation> bindingInfo, vk::ShaderModule* vertexShader, vk::ShaderModule* fragmentShader);
-        PipelineAndRenderPass CreatePipeline(PipelineInfo pipelineInfoN);
+        vk::Pipeline CreatePipeline(PipelineInfo pipelineInfoN);
 
+        uint32_t registerPipeline(vk::Pipeline pipeline);
+        vk::Pipeline* getPipeline(uint32_t index);
+
+        void queueInstancedDraw(
+            Model* model,
+            Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* instanceBuffer,
+            uint32_t pipeline
+        );
+        inline void queueBufferDraw();
+        inline void queueModelDraw();
 	private:
 		/*
 		* @brief Creates a Vulkan Instance
@@ -284,6 +296,9 @@ namespace nihil::graphics {
 
 		vk::Queue graphicsQueue;
 		vk::Queue presentQueue;
+
+        std::vector<vk::Pipeline> pipelineStorage;
+        std::vector<Command> commandQueue;
 
 		bool error = false;
 

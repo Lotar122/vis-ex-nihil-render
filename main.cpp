@@ -132,7 +132,9 @@ int main()
 		engine->renderer->CreateShaderModule("./resources/Shaders/shaderF.spv", *engine->get->logicalDevice, &fragmentShader);
 
 		nihil::graphics::PipelineInfo pipelineInfo = engine->CreatePipelineConfiguration(vAttrib, bindingInfo, vertexShader, fragmentShader);
-		nihil::graphics::PipelineAndRenderPass par = engine->CreatePipeline(pipelineInfo);
+		vk::Pipeline pipeline = engine->CreatePipeline(pipelineInfo);
+
+		engine->registerPipeline(pipeline);
 
 		glm::mat4 trans = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		std::vector<float> instanceData(0);
@@ -161,12 +163,12 @@ int main()
 		vk::Pipeline backupPipeline = engine->renderer->pipeline;
 
 		//pipeline assignment
-		engine->renderer->pipeline = par.pipeline;
-		engine->renderer->renderPass = par.renderPass;
+		engine->renderer->pipeline = pipeline;
 		
 		uint64_t deleteDebug = 0;
 		while (!*(app->get->shouldClose))
 		{
+			engine->queueInstancedDraw(&modelCar, &instanceBuffer, 0);
 			engine->Draw(compArr);
 			deleteDebug++;
 			if (deleteDebug > 1000)

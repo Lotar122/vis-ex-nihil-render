@@ -26,7 +26,8 @@ namespace nihil::graphics {
 
 		commandBuffer.reset();
 
-		recordDrawCommands(commandBuffer, imageIndex, modelArr);
+		//recordDrawCommands(commandBuffer, imageIndex, modelArr);
+		executeCommandQueue(&engine->commandQueue, commandBuffer, imageIndex);
 
 		vk::SubmitInfo submitinfo = {};
 		vk::Semaphore waitSemaphores[] = { swapchainBundle.frames[frameNumber].imageAvailable };
@@ -134,6 +135,67 @@ namespace nihil::graphics {
 			std::cerr << "Error whilst ending the render pass" << std::endl;
 			std::abort();
 		}
+	}
+	void Renderer::executeCommandQueue(std::vector<Command>* commandQueue, vk::CommandBuffer& commandBuffer, uint32_t imageIndex)
+	{
+		vk::CommandBufferBeginInfo beginInfo = {};
+		try {
+			commandBuffer.begin(beginInfo);
+		}
+		catch (vk::SystemError err) {
+			std::cerr << "Error whilst trying to start recording draw calls" << std::endl;
+			std::abort();
+		}
+
+		vk::RenderPassBeginInfo passInfo = {};
+		passInfo.renderPass = renderPass;
+		passInfo.framebuffer = swapchainBundle.frames[imageIndex].frameBuffer;
+		passInfo.renderArea.offset.x = 0;
+		passInfo.renderArea.offset.y = 0;
+		passInfo.renderArea.extent = swapchainBundle.extent;
+		vk::ClearValue clearValues[2];
+		clearValues[0].color = { 0.0f,0.0f,0.0f,1.0f };
+		clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0.0f);
+		passInfo.clearValueCount = 2;
+		passInfo.pClearValues = clearValues;
+
+		commandBuffer.beginRenderPass(passInfo, vk::SubpassContents::eInline);
+
+		for (Command& command : *commandQueue)
+		{
+			if (command.commandType == CommandType::DrawInstanced)
+			{
+				InstancedDrawData data = *((InstancedDrawData*)command.data);
+				commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *(engine->getPipeline(command.targetPipeline)));
+
+				if (*engine->app->get->width != viewport.width || *engine->app->get->height != viewport.height)
+				{
+					viewport = vk::Viewport(
+						0.0f, 0.0f,
+						static_cast<float>(*engine->app->get->width), static_cast<float>(*engine->app->get->height),
+						0.0f, 1.0f
+					);
+
+					scissor = vk::Rect2D(vk::Offset2D(0, 0), vk::Extent2D(*engine->app->get->width, *engine->app->get->height));
+				}
+
+				commandBuffer.setViewport(0, 1, &viewport);
+				commandBuffer.setScissor(0, 1, &scissor);
+
+				drawInstanced(data.model, commandBuffer, data.instanceBuffer);
+			}
+		}
+
+		commandBuffer.endRenderPass();
+		try {
+			commandBuffer.end();
+		}
+		catch (vk::SystemError err) {
+			std::cerr << "Error whilst ending the render pass" << std::endl;
+			std::abort();
+		}
+
+		engine->commandQueue.clear();
 	}
 
 	void Renderer::drawBuffer(

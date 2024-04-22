@@ -17,6 +17,7 @@
     <ClCompile Include="Classes\Buffer\Buffer.tpp" />
     <ClCompile Include="Classes\Model\Model.cpp" />
     <ClCompile Include="Classes\Engine\Engine.DynamicPipeline.cpp" />
+    <ClCompile Include="Classes\Engine\Engine.Draw.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Classes\App\App.hpp" />
@@ -31,6 +32,7 @@
     <ClInclude Include="Classes\Buffer\Buffer.hpp" />
     <ClInclude Include="Classes\Model\Model.hpp" />
     <ClInclude Include="Classes\InstanceData\InstanceData.hpp" />
+    <ClInclude Include="Classes\Commands\Command.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="compile.bat" />
