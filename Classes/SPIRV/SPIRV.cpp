@@ -1,8 +1,8 @@
 #include "SPIRV.hpp"
 
-using namespace nihil;
+using namespace nihil::graphics;
 
-std::vector<char> SPIRV::LoadFile(std::string filepath)
+std::vector<char> SPIRV::LoadSPVFile(std::string filepath)
 {
 	std::ifstream file{ filepath, std::ios::ate | std::ios::binary };
 	if (!file.is_open())
@@ -17,4 +17,9 @@ std::vector<char> SPIRV::LoadFile(std::string filepath)
 	file.read(buffer.data(), filesize);
 	file.close();
 	return buffer;
+}
+
+std::vector<char> SPIRV::CompileGLSLFile(std::string filepath)
+{
+	return std::vector<char>(0);
 }

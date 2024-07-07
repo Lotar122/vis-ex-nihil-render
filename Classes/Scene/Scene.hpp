@@ -1,8 +1,10 @@
 #pragma once
+#define GLM_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_LEFT_HANDED
 #include <glm/glm.hpp>
 #include <vector>
 
-namespace nihil {
+namespace nihil::graphics {
 	class Scene
 	{
 	public:

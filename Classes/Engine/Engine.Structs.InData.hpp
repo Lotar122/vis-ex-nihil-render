@@ -6,7 +6,10 @@
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
-namespace nihil {
+namespace nihil::graphics {
+	using SwapchainConfiguration = vk::SwapchainCreateInfoKHR;
+
+	//!!! move to nstd
 	struct Version {
 		uint32_t variant;
 		uint32_t major;
@@ -21,11 +24,54 @@ namespace nihil {
 			patch = _patch;
 		}
 	};
-	struct InstanceCreateInfo {
-		std::vector<const char*> validationLayers = {};
-		Version VulkanVersion;
-		std::string AppName;
-		Version AppVersion;
+
+	struct VertexAttribute {
+		uint32_t binding;
+		uint32_t location;
+
+		vk::Format format;
+		uint32_t offset;
+	};
+	struct VertexBindingInformation {
+		vk::VertexInputRate inputRate;
+		uint32_t stride;
+	};
+	struct PipelineInfo {
+		std::vector<vk::VertexInputBindingDescription> bindingDesc;
+		std::vector<vk::VertexInputAttributeDescription> attributeDesc;
+
+		vk::ShaderModule* vertexShader;
+		vk::ShaderModule* fragmentShader;
+	};
+	struct PipelineAndRenderPass {
+		vk::Pipeline pipeline;
+		vk::RenderPass renderPass;
+	};
+
+	struct VulkanInstanceCreateInfo {
+		Version appVersion;
+		Version vulkanVersion;
+		std::string appName;
+		bool validationLayers = false;
+	};
+
+	enum class BufferingMode {
+		eSingle = 1,
+		eDouble = 2,
+		eTriple = 3,
+		eQuadruple = 4
+	};
+
+	struct SwapchainConfigCreateInfo {
+		uint16_t windowWidth;
+		uint16_t windowHeight;
+		BufferingMode preferredBuffering;
+	};
+
+	struct SwapchainSupportDetails {
+		vk::SurfaceCapabilitiesKHR capabilities;
+		std::vector<vk::SurfaceFormatKHR> formats;
+		std::vector<vk::PresentModeKHR> presentModes;
 	};
 
 	struct WindowData {
@@ -52,6 +98,12 @@ namespace nihil {
 		vk::ImageView view;
 		vk::Framebuffer frameBuffer;
 		vk::CommandBuffer commandBuffer;
+		vk::Image depthBuffer;
+		vk::DeviceMemory depthBufferMemory;
+		vk::ImageView depthBufferView;
+		vk::Format depthFormat;
+		uint16_t width;
+		uint16_t height;
 
 		vk::Semaphore imageAvailable, renderFinished;
 		vk::Fence inFlightFence;
@@ -60,6 +112,7 @@ namespace nihil {
 		vk::SwapchainKHR swapchain;
 		std::vector<SwapChainFrame> frames;
 		vk::Format format;
+		vk::Format depthFormat;
 		vk::Extent2D extent;
 	};
 }

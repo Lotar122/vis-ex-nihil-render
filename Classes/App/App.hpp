@@ -1,30 +1,48 @@
 #pragma once
-#include <iostream>
 #include <GLFW/glfw3.h>
 #include "Classes/Scene/Scene.hpp"
+#include "Classes/Engine/Engine.Structs.InData.hpp"
+#include "nihil-standard/nstd.hpp"
+
+#include <iostream>
+
+namespace nihil::graphics {
+	class Engine;
+}
 
 namespace nihil {
-	class Engine;
+	struct AppCreationArgs {
+		uint16_t width;
+		uint16_t height;
+		std::string name;
+		graphics::Version vulkanVersion;
+		graphics::Version appVersion;
+		graphics::Engine* engine;
+	};
 
 	class App
 	{
 	private:
 		struct Proxy {
-			const uint32_t* width;
-			const uint32_t* height;
+			const uint16_t* width;
+			const uint16_t* height;
 			const std::string* name;
-			Engine* engine;
-			Scene* scene;
+			graphics::Engine* engine;
+			graphics::Scene* scene;
 			GLFWwindow* window;
 			const bool* shouldClose;
+			const graphics::Version* vulkanVersion;
+			const graphics::Version* appVersion;
 			Proxy(
-				const uint32_t* width,
-				const uint32_t* height,
+				const uint16_t* width,
+				const uint16_t* height,
 				const std::string* name,
-				Engine* engine,
-				Scene* scene,
+				graphics::Engine* engine,
+				graphics::Scene* scene,
 				GLFWwindow* window,
-				const bool* shouldClose
+				const bool* shouldClose,
+				const graphics::Version* appVersion,
+				const graphics::Version* vulkanVersion
 			)
 			{
 				this->width = width;
@@ -34,30 +52,44 @@ namespace nihil {
 				this->scene = scene;
 				this->window = window;
 				this->shouldClose = shouldClose;
+				this->appVersion = appVersion;
+				this->vulkanVersion = vulkanVersion;
 			}
 		};
-		uint32_t width;
-		uint32_t height;
+		uint16_t width;
+		uint16_t height;
 		std::string name;
 
-		Engine* engine;
-		Scene* scene;
+		graphics::Engine* engine;
+		graphics::Scene* scene;
 
 		GLFWwindow* window;
 
+		graphics::Version vulkanVersion;
+		graphics::Version appVersion;
+
 		bool shouldClose = false;
 
+		int gcd(int a, int b) {
+			while (b != 0) {
+				int temp = b;
+				b = a % b;
+				a = temp;
+			}
+			return a;
+		}
 	public:
+		nstd::ScreenRatio screenRatio;
 		Proxy* get;
-		App(uint32_t width, uint32_t height, std::string name, Engine* engine);
+		App(AppCreationArgs args);
 		~App();
 
 		void handle();
 
-		inline void SetWidth(uint32_t width) {
+		inline void SetWidth(uint16_t width) {
 			this->width = width;
 		}
-		inline void SetHeight(uint32_t height) {
+		inline void SetHeight(uint16_t height) {
 			this->height = height;
 		}
 	};

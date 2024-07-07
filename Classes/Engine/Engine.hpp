@@ -9,8 +9,9 @@
 #include <optional>
 #include <vector>
 #include "implicit_cast.hpp"
-#include "SPIRV/SPIRV.hpp"
+#include "Classes/SPIRV/SPIRV.hpp"
 
+//!!! Enable colors
 #define USE_COLORS
 #include "TerminalColors.hpp"
 
@@ -21,54 +22,59 @@
 
 #include "Classes/Scene/Scene.hpp"
 
+#define GLM_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_LEFT_HANDED
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace nihil {
-	//instead of #include "VertexBuffer/VertexBuffer.h"
-	class VertexBuffer;
+#include "Classes/Renderer/Renderer.hpp"
+#include "Classes/Buffer/Buffer.hpp"
+
+#include "Classes/Commands/Command.hpp"
+
+namespace nihil::graphics {
+
+    enum class ResourceType {
+        Buffer,
+        Image,
+        ImageView,
+        Pipeline,
+        PipelineLayout,
+        RenderPass,
+        ShaderModule
+    };
+
+	struct EngineCreateInfo {
+
+	};
 
 	class Engine
 	{
+		friend class Renderer;
 	private:
 		struct Proxy {
 			const vk::Instance* instance;
 			const vk::PhysicalDevice* physicalDevice;
 			const vk::Device* logicalDevice;
-			const vk::RenderPass* renderPass;
-			const vk::Pipeline* pipeline;
-			const vk::CommandPool* commandPool;
-			const vk::CommandBuffer* commandBuffer;
-			const SwapChainBundle* swapchainBundle;
 
 			Proxy(
 				const vk::Instance* instance,
 				const vk::PhysicalDevice* physicalDevice,
-				const vk::Device* logicalDevice,
-				const vk::RenderPass* renderPass,
-				const vk::Pipeline* pipeline,
-				const vk::CommandPool* commandPool,
-				const vk::CommandBuffer* commandBuffer,
-				const SwapChainBundle* swapchainBundle
+				const vk::Device* logicalDevice
 			)
 			{
-				this->commandBuffer = commandBuffer;
-				this->commandPool = commandPool;
 				this->instance = instance;
 				this->logicalDevice = logicalDevice;
 				this->physicalDevice = physicalDevice;
-				this->pipeline = pipeline;
-				this->renderPass = renderPass;
-				this->swapchainBundle = swapchainBundle;
 			}
 		};
+
 	public:
 		App* app = NULL;
 		bool shouldClose = false;
 		bool debug = false;
-
-		int FPS = 60;
-		std::chrono::milliseconds period = std::chrono::milliseconds(static_cast<long long>((float)1000 / (float)60));
+        Renderer* renderer;
 
 		Engine(bool _debug);
 		Engine();
@@ -79,53 +85,240 @@ namespace nihil {
 		//Setup (for now just calls setupdeafult)
 		void Setup();
 
-		//creates the deafult engine to render a simple white triangle
-		void SetupDeafult();
-
-		//Draw
-		void Draw(Scene* scene);
-
 		Proxy* get;
 
+		nstd::OBJ objobject;
+
+		void Draw(std::vector<nstd::Component>& modelArr);
+
+		inline uint32_t GetFormatLenght(vk::Format format)
+		{
+            switch (format) {
+            case vk::Format::eUndefined:
+                return 0; // Handle undefined format appropriately
+            case vk::Format::eR4G4UnormPack8:
+                return 1 * sizeof(uint8_t); // Handle R4G4 format
+            case vk::Format::eR4G4B4A4UnormPack16:
+            case vk::Format::eB4G4R4A4UnormPack16:
+                return 2 * sizeof(uint8_t); // Handle R4G4B4A4 or B4G4R4A4 format
+            case vk::Format::eR5G6B5UnormPack16:
+            case vk::Format::eB5G6R5UnormPack16:
+                return 2 * sizeof(uint8_t); // Handle R5G6B5 or B5G6R5 format
+            case vk::Format::eR5G5B5A1UnormPack16:
+            case vk::Format::eB5G5R5A1UnormPack16:
+            case vk::Format::eA1R5G5B5UnormPack16:
+                return 2 * sizeof(uint8_t); // Handle R5G5B5A1, B5G5R5A1, or A1R5G5B5 format
+            case vk::Format::eR8Unorm:
+            case vk::Format::eR8Snorm:
+            case vk::Format::eR8Uscaled:
+            case vk::Format::eR8Sscaled:
+            case vk::Format::eR8Uint:
+            case vk::Format::eR8Sint:
+            case vk::Format::eR8Srgb:
+                return 1 * sizeof(uint8_t); // Handle R8 format
+            case vk::Format::eR8G8Unorm:
+            case vk::Format::eR8G8Snorm:
+            case vk::Format::eR8G8Uscaled:
+            case vk::Format::eR8G8Sscaled:
+            case vk::Format::eR8G8Uint:
+            case vk::Format::eR8G8Sint:
+            case vk::Format::eR8G8Srgb:
+                return 2 * sizeof(uint8_t); // Handle R8G8 format
+            case vk::Format::eR8G8B8Unorm:
+            case vk::Format::eR8G8B8Snorm:
+            case vk::Format::eR8G8B8Uscaled:
+            case vk::Format::eR8G8B8Sscaled:
+            case vk::Format::eR8G8B8Uint:
+            case vk::Format::eR8G8B8Sint:
+            case vk::Format::eR8G8B8Srgb:
+                return 3 * sizeof(uint8_t); // Handle R8G8B8 format
+            case vk::Format::eB8G8R8Unorm:
+            case vk::Format::eB8G8R8Snorm:
+            case vk::Format::eB8G8R8Uscaled:
+            case vk::Format::eB8G8R8Sscaled:
+            case vk::Format::eB8G8R8Uint:
+            case vk::Format::eB8G8R8Sint:
+            case vk::Format::eB8G8R8Srgb:
+                return 3 * sizeof(uint8_t); // Handle B8G8R8 format
+            case vk::Format::eR8G8B8A8Unorm:
+            case vk::Format::eR8G8B8A8Snorm:
+            case vk::Format::eR8G8B8A8Uscaled:
+            case vk::Format::eR8G8B8A8Sscaled:
+            case vk::Format::eR8G8B8A8Uint:
+            case vk::Format::eR8G8B8A8Sint:
+            case vk::Format::eR8G8B8A8Srgb:
+                return 4 * sizeof(uint8_t); // Handle R8G8B8A8 format
+            case vk::Format::eB8G8R8A8Unorm:
+            case vk::Format::eB8G8R8A8Snorm:
+            case vk::Format::eB8G8R8A8Uscaled:
+            case vk::Format::eB8G8R8A8Sscaled:
+            case vk::Format::eB8G8R8A8Uint:
+            case vk::Format::eB8G8R8A8Sint:
+            case vk::Format::eB8G8R8A8Srgb:
+                return 4 * sizeof(uint8_t); // Handle B8G8R8A8 format
+            case vk::Format::eA8B8G8R8UnormPack32:
+            case vk::Format::eA8B8G8R8SnormPack32:
+            case vk::Format::eA8B8G8R8UscaledPack32:
+            case vk::Format::eA8B8G8R8SscaledPack32:
+            case vk::Format::eA8B8G8R8UintPack32:
+            case vk::Format::eA8B8G8R8SintPack32:
+            case vk::Format::eA8B8G8R8SrgbPack32:
+                return 4 * sizeof(uint8_t); // Handle A8B8G8R8 format
+            case vk::Format::eA2R10G10B10UnormPack32:
+            case vk::Format::eA2R10G10B10SnormPack32:
+            case vk::Format::eA2R10G10B10UscaledPack32:
+            case vk::Format::eA2R10G10B10SscaledPack32:
+            case vk::Format::eA2R10G10B10UintPack32:
+            case vk::Format::eA2R10G10B10SintPack32:
+                return 4 * sizeof(uint8_t); // Handle A2R10G10B10 format
+            case vk::Format::eA2B10G10R10UnormPack32:
+            case vk::Format::eA2B10G10R10SnormPack32:
+            case vk::Format::eA2B10G10R10UscaledPack32:
+            case vk::Format::eA2B10G10R10SscaledPack32:
+            case vk::Format::eA2B10G10R10UintPack32:
+            case vk::Format::eA2B10G10R10SintPack32:
+                return 4 * sizeof(uint8_t); // Handle A2B10G10R10 format
+            case vk::Format::eR16Unorm:
+            case vk::Format::eR16Snorm:
+            case vk::Format::eR16Uscaled:
+            case vk::Format::eR16Sscaled:
+            case vk::Format::eR16Uint:
+            case vk::Format::eR16Sint:
+            case vk::Format::eR16Sfloat:
+                return 1 * sizeof(uint16_t); // Handle R16 format
+            case vk::Format::eR16G16Unorm:
+            case vk::Format::eR16G16Snorm:
+            case vk::Format::eR16G16Uscaled:
+            case vk::Format::eR16G16Sscaled:
+            case vk::Format::eR16G16Uint:
+            case vk::Format::eR16G16Sint:
+            case vk::Format::eR16G16Sfloat:
+                return 2 * sizeof(uint16_t); // Handle R16G16 format
+            case vk::Format::eR16G16B16Unorm:
+            case vk::Format::eR16G16B16Snorm:
+            case vk::Format::eR16G16B16Uscaled:
+            case vk::Format::eR16G16B16Sscaled:
+            case vk::Format::eR16G16B16Uint:
+            case vk::Format::eR16G16B16Sint:
+            case vk::Format::eR16G16B16Sfloat:
+                return 3 * sizeof(uint16_t); // Handle R16G16B16 format
+            case vk::Format::eR16G16B16A16Unorm:
+            case vk::Format::eR16G16B16A16Snorm:
+            case vk::Format::eR16G16B16A16Uscaled:
+            case vk::Format::eR16G16B16A16Sscaled:
+            case vk::Format::eR16G16B16A16Uint:
+            case vk::Format::eR16G16B16A16Sint:
+            case vk::Format::eR16G16B16A16Sfloat:
+                return 4 * sizeof(uint16_t); // Handle R16G16B16A16 format
+            case vk::Format::eR32Uint:
+            case vk::Format::eR32Sint:
+            case vk::Format::eR32Sfloat:
+                return 1 * sizeof(uint32_t); // Handle R32 format
+            case vk::Format::eR32G32Uint:
+            case vk::Format::eR32G32Sint:
+            case vk::Format::eR32G32Sfloat:
+                return 2 * sizeof(uint32_t); // Handle R32G32 format
+            case vk::Format::eR32G32B32Uint:
+            case vk::Format::eR32G32B32Sint:
+            case vk::Format::eR32G32B32Sfloat:
+                return 3 * sizeof(uint32_t); // Handle R32G32B32 format
+            case vk::Format::eR32G32B32A32Uint:
+            case vk::Format::eR32G32B32A32Sint:
+            case vk::Format::eR32G32B32A32Sfloat:
+                return 4 * sizeof(uint32_t); // Handle R32G32B32A32 format
+            case vk::Format::eR64Uint:
+            case vk::Format::eR64Sint:
+            case vk::Format::eR64Sfloat:
+                return 1 * sizeof(uint64_t); // Handle R64 format
+            case vk::Format::eR64G64Uint:
+            case vk::Format::eR64G64Sint:
+            case vk::Format::eR64G64Sfloat:
+                return 2 * sizeof(uint64_t); // Handle R64G64 format
+            case vk::Format::eR64G64B64Uint:
+            case vk::Format::eR64G64B64Sint:
+            case vk::Format::eR64G64B64Sfloat:
+                return 3 * sizeof(uint64_t); // Handle R64G64B64 format
+            case vk::Format::eR64G64B64A64Uint:
+            case vk::Format::eR64G64B64A64Sint:
+            case vk::Format::eR64G64B64A64Sfloat:
+                return 4 * sizeof(uint64_t); // Handle R64G64B64A64 format
+            default:
+                return 0; // Handle unknown format or other formats not covered above
+            }
+		}
+
+        PipelineInfo CreatePipelineConfiguration(std::vector<VertexAttribute> attributes, std::vector<VertexBindingInformation> bindingInfo, vk::ShaderModule* vertexShader, vk::ShaderModule* fragmentShader);
+        vk::Pipeline CreatePipeline(PipelineInfo pipelineInfoN);
+
+        uint32_t registerPipeline(vk::Pipeline pipeline);
+        vk::Pipeline* getPipeline(uint32_t index);
+
+        void registerObjectForDeletion(BufferBase* buffer);
+        void registerObjectForDeletion(vk::Image image);
+        void registerObjectForDeletion(vk::ImageView imageView);
+        void registerObjectForDeletion(vk::ShaderModule shaderModule);
+        void registerObjectForDeletion(vk::PipelineLayout pipelineLayout);
+        void registerObjectForDeletion(vk::RenderPass renderPass);
+
+        void queueInstancedDraw(
+            Model* model,
+            Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* instanceBuffer,
+            uint32_t pipeline
+        );
+        void queueBufferDraw(
+            Buffer<float, vk::BufferUsageFlagBits::eVertexBuffer>* vertexBuffer,
+            Buffer<uint32_t, vk::BufferUsageFlagBits::eIndexBuffer>* indexBuffer,
+            uint32_t pipeline
+        );
+        void queueModelDraw(
+            Model* model,
+            uint32_t pipeline
+        );
 	private:
-		//picks the right device
-		void PickDevice();
-		//creates a Vulkan instance
-		void CreateVulkanInstance(InstanceCreateInfo& info);
-		//creates a Vulkan surface
-		void CreateSurface();
-		//creates the required queues
-		void CreateQueues();
-		//creates a Vulkan logical device
-		void CreateLogicDevice();
-		//generates the swapchain configuration
-		void PreConfigSwapchain();
-		//creates a Vulkan swapchain
-		void CreateSwapchain();
-		//creates views to the images of the swapchain
-		void CreateImageViews();
-		//sets up the basic pipeline
-		void PipelineSetup();
-		//creates the shader module
-		void CreateShaderModule(std::string filepath, vk::Device device, vk::ShaderModule** ppShaderModule);
-		//render setup related code (organize in future)
-		void RenderSetup();
-		//records draw commands
-		void recordDrawCommands(vk::CommandBuffer& commandBuffer, uint32_t imageIndex, Scene* scene);
-		//destroy the swapchain
-		void destroySwapchain();
-		//create the flow-control
-		void createSyncObjects();
-		//create framebuffers
-		void createFrameBuffers();
-		//make frame commandbuffers
-		void createFrameCommandBuffers();
-		//make main commandbuffer
-		void createMainCommandBuffer();
-		//make commandpools
-		void createCommandPools();
-		//reacreate swapchain
-		void RecreateSwapchain();
+        std::vector<BufferBase*> bufferStorage;
+        std::vector<vk::Image> imageStorage;
+        std::vector<vk::ImageView> imageViewStorage;
+        std::vector<vk::ShaderModule> shaderModuleStorage;
+        std::vector<vk::PipelineLayout> pipelineLayoutStorage;
+        std::vector<vk::RenderPass> renderPassStorage;
+        std::vector<vk::Pipeline> pipelineStorage;
+
+        nstd::PtrManagerClass commandDataManager;
+		/*
+		* @brief Creates a Vulkan Instance
+		*
+		* @param createInfo - Information for the creation of a vulkan instance
+		* @return None
+		*/
+		void CreateVulkanInstance(VulkanInstanceCreateInfo createInfo);
+		/*
+		* @brief Picks the Device for you
+		*
+		* @param None
+		* @return None
+		*/
+		void PickPhysicalDevice();
+		/*
+		* @brief Creates a Vulkan Surface
+		*
+		* @param window - a pointer to a GLFW window thats used by your application
+		* @return None
+		*/
+		void CreateVulkanSurface(GLFWwindow* window);
+		/*
+		* @brief Creates a Vulkan logical dedvice
+		*
+		* @param None
+		* @return None
+		*/
+		void CreateVulkanLogicalDevice();
+		/*
+		* @brief Creates the Present Queue and the Render Queue
+		*
+		* @param None
+		* @return None
+		*/
+		void CreateVulkanQueues();
 
 		vk::Instance instance;
 		vk::PhysicalDevice device;
@@ -137,30 +330,7 @@ namespace nihil {
 		vk::Queue graphicsQueue;
 		vk::Queue presentQueue;
 
-		SwapChainSupportDetails support;
-		vk::SurfaceFormatKHR surfaceFormat;
-		vk::PresentModeKHR presentMode;
-		vk::Extent2D extent;
-		vk::SwapchainCreateInfoKHR swapCreateInfo;
-
-		SwapChainBundle bundle{};
-
-		uint32_t imageCount;
-
-		vk::ShaderModule* vertexShader = NULL;
-		vk::ShaderModule* fragmentShader = NULL;
-
-		vk::PipelineLayout layout;
-		vk::RenderPass renderPass;
-		vk::Pipeline pipeline;
-
-		vk::CommandPool commandPool;
-		vk::CommandBuffer commandBuffer;
-
-		uint32_t maxFramesInFlight, frameNumber;
-
-		//VertexBuffer
-		VertexBuffer* vertexBuffer;
+        std::vector<DrawCommand> commandQueue;
 
 		bool error = false;
 
@@ -206,6 +376,7 @@ namespace nihil {
 
 		inline bool isSuitable(const vk::PhysicalDevice& device)
 		{
+			if (!(device.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu)) return false;
 			const std::vector<const char*> requestedExtensions = {
 				VK_KHR_SWAPCHAIN_EXTENSION_NAME
 			};
@@ -214,7 +385,7 @@ namespace nihil {
 			{
 				requiredExtensions.erase(extension.extensionName);
 			}
-			return requiredExtensions.empty() && device.getProperties().deviceType == vk::PhysicalDeviceType::eDiscreteGpu;
+			return requiredExtensions.empty();
 		}
 	};
-}
+};

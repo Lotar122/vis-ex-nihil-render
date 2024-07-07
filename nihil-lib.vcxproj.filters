@@ -48,7 +48,19 @@
     <ClInclude Include="Classes\SPIRV\SPIRV.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Classes\VertexBuffer\VertexBuffer.hpp">
+    <ClInclude Include="Classes\Renderer\Renderer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classes\Model\Model.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classes\InstanceData\InstanceData.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classes\Commands\Command.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Classes\Buffer\Buffer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -62,13 +74,7 @@
     <ClCompile Include="Classes\Engine\Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Classes\Engine\Engine.Pipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Classes\Engine\Engine.Primary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Classes\Engine\Engine.Render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Classes\Memory\Memory.cpp">
@@ -80,8 +86,32 @@
     <ClCompile Include="Classes\SPIRV\SPIRV.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Classes\VertexBuffer\VertexBuffer.cpp">
+    <ClCompile Include="Classes\Renderer\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Classes\Renderer\Renderer.Pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes\Renderer\Renderer.Render.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes\Renderer\Renderer.Swapchain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes\Engine\Engine.Draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes\Engine\Engine.DynamicPipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes\Model\Model.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Classes\Engine\Engine.ResourceStorage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Classes\Buffer\Buffer.tpp" />
   </ItemGroup>
 </Project>

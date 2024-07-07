@@ -1,13 +1,20 @@
 #include "Engine.hpp"
-#include "VertexBuffer/VertexBuffer.hpp"
+#include "Classes/Buffer/Buffer.hpp"
 
-using namespace nihil;
+#include <filesystem>
 
 #ifdef _DEBUG
 #define DEBUGFLAG true
 #else
 #define DEBUGFLAG false
 #endif
+
+using namespace nihil::graphics;
+
+void Engine::Draw(std::vector<nstd::Component>& modelArr) {
+	renderer->Draw(modelArr);
+	commandDataManager.deleteAll();
+}
 
 Engine::Engine(bool _debug)
 {
@@ -18,12 +25,7 @@ Engine::Engine(bool _debug)
 	get = new Proxy(
 		&instance,
 		&device,
-		&logicalDevice,
-		&renderPass,
-		&pipeline,
-		&commandPool,
-		&commandBuffer,
-		&bundle
+		&logicalDevice
 	);
 }
 Engine::Engine()
@@ -35,28 +37,45 @@ Engine::Engine()
 	get = new Proxy(
 		&instance,
 		&device,
-		&logicalDevice,
-		&renderPass,
-		&pipeline,
-		&commandPool,
-		&commandBuffer,
-		&bundle
+		&logicalDevice
 	);
 }
 Engine::~Engine()
 {
+	delete renderer;
 	logicalDevice.waitIdle();
-	logicalDevice.destroyShaderModule(*vertexShader);
-	logicalDevice.destroyShaderModule(*fragmentShader);
-	logicalDevice.destroyCommandPool(commandPool);
 
-	logicalDevice.destroyPipeline(pipeline);
-	logicalDevice.destroyPipelineLayout(layout);
-	logicalDevice.destroyRenderPass(renderPass);
-
-	destroySwapchain();
-
-	delete vertexBuffer;
+	//destroy all resources that were registered
+	{
+		for (vk::Pipeline& x : pipelineStorage)
+		{
+			logicalDevice.destroyPipeline(x);
+		}
+		for (BufferBase*& x : bufferStorage)
+		{
+			delete x;
+		}
+		for (vk::Image& x : imageStorage)
+		{
+			logicalDevice.destroyImage(x);
+		}
+		for (vk::ImageView& x : imageViewStorage)
+		{
+			logicalDevice.destroyImageView(x);
+		}
+		for (vk::ShaderModule& x : shaderModuleStorage)
+		{
+			logicalDevice.destroyShaderModule(x);
+		}
+		for (vk::PipelineLayout& x : pipelineLayoutStorage)
+		{
+			logicalDevice.destroyPipelineLayout(x);
+		}
+		for (vk::RenderPass& x : renderPassStorage)
+		{
+			logicalDevice.destroyRenderPass(x);
+		}
+	}
 
 	logicalDevice.waitIdle();
 	logicalDevice.destroy();
@@ -68,98 +87,30 @@ Engine::~Engine()
 	//cause nvoglv64.dll crashes
 }
 
-void Engine::destroySwapchain()
-{
-	std::cout << std::endl << YELLOW << "[Setup]" << RESET << " Destroying the swapchain " << GREEN << "[###]" << std::endl;
-	logicalDevice.waitIdle();
-	for (const SwapChainFrame& frame : bundle.frames)
-	{
-		logicalDevice.destroySemaphore(frame.imageAvailable);
-		logicalDevice.destroySemaphore(frame.renderFinished);
-		logicalDevice.destroyFence(frame.inFlightFence);
-		logicalDevice.destroyImageView(frame.view);
-		logicalDevice.destroyFramebuffer(frame.frameBuffer);
-	}
-	logicalDevice.destroySwapchainKHR(bundle.swapchain);
-}
-
-void Engine::RecreateSwapchain()
-{
-	int* pWidth = new int(0);
-	int* pHeight = new int(0);
-	glfwGetFramebufferSize(const_cast<GLFWwindow*>(app->get->window), pWidth, pHeight);
-	app->SetWidth(*pWidth);
-	app->SetHeight(*pHeight);
-	while (app->get->width == 0 || app->get->height == 0)
-	{
-		glfwGetFramebufferSize(const_cast<GLFWwindow*>(app->get->window), pWidth, pHeight);
-		app->SetWidth(*pWidth);
-		app->SetHeight(*pHeight);
-		glfwWaitEvents();
-	}
-	delete pWidth, pHeight;
-	logicalDevice.waitIdle();
-	destroySwapchain();
-	PreConfigSwapchain();
-	CreateSwapchain();
-	CreateImageViews();
-	createFrameBuffers();
-	createSyncObjects();
-	createFrameCommandBuffers();
-}
-
 void Engine::Setup()
 {
 	if (app == NULL) { std::cerr << "App is nullptr" << std::endl; std::abort(); }
-	SetupDeafult();
-}
+	//SetupDeafult();
 
-void Engine::SetupDeafult()
-{
-	if (app == NULL) { std::cerr << "App is nullptr" << std::endl; std::abort(); }
+	VulkanInstanceCreateInfo instanceInfo = {};
+	instanceInfo.appName = *app->get->name;
+	instanceInfo.appVersion = *app->get->appVersion;
+	instanceInfo.vulkanVersion = *app->get->vulkanVersion;
+	//deafult false
+	instanceInfo.validationLayers = true;
 
-	InstanceCreateInfo instanceCreateInfo = {};
-	instanceCreateInfo.AppName = "Sample App";
-	Version appVersion = {};
-	appVersion.make_version(0, 1, 0, 0);
-	instanceCreateInfo.AppVersion = appVersion;
-	Version vulkanVersion = {};
-	vulkanVersion.make_version(0, 1, 0, 0);
-	instanceCreateInfo.VulkanVersion = vulkanVersion;
-	std::string validationlayers = "VK_LAYER_KHRONOS_validation";
-	if (!DEBUGFLAG) validationlayers = "";
-	std::vector<const char*> validationLayers = {
-		validationlayers.c_str()
-	};
-	instanceCreateInfo.validationLayers = validationLayers;
-	CreateVulkanInstance(instanceCreateInfo);
-	PickDevice();
-	CreateSurface();
+	//Creation of the vulkan instance
+	CreateVulkanInstance(instanceInfo);
 
-	//implement in future as for now no functionality needs to customize this
-	CreateQueues();
+	CreateVulkanSurface(app->get->window);
 
-	//same as queues
-	CreateLogicDevice();
+	PickPhysicalDevice();
 
-	//enable the user to select the options as triple buffering double buffering ETC.
-	PreConfigSwapchain();
+	CreateVulkanQueues();
 
-	//implement in future as for now no functionality needs to customize this
-	CreateSwapchain();
-	CreateImageViews();
+	CreateVulkanLogicalDevice();
 
-	finishPrimarySetup();
-
-	//customize shaders in future with the component system
-	PipelineSetup();
-
-	//make the Draw function interactable
-	RenderSetup();
-
-	finishSetup();
-
-	vertexBuffer = new VertexBuffer(this);
+	renderer = new Renderer(this);
 }
 
 void Engine::setApp(App* _app)
