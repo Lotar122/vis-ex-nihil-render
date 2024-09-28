@@ -19,7 +19,7 @@
 #include "Classes/SPIRV/SPIRV.hpp"
 
 #include "glm/glm.hpp"
-#include "nihil-standard/nstd.hpp"
+#include "nstd/nstd.hpp"
 
 #include "implicit_cast.hpp"
 #include "TerminalColors.hpp"
